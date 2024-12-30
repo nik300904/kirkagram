@@ -1,0 +1,55 @@
+package service
+
+import (
+	"context"
+	"errors"
+	"fmt"
+	"kirkagram/internal/models"
+	"kirkagram/internal/storage"
+	"log/slog"
+
+	"github.com/go-playground/validator"
+)
+
+type UserService interface {
+	GetByEmail(email string) (*models.GetUserResponse, error)
+}
+
+type User struct {
+	storage UserService
+	log     *slog.Logger
+}
+
+func NewUserService(log *slog.Logger, storage UserService) *User {
+	return &User{storage: storage, log: log}
+}
+
+func (s *User) GetByEmail(ctx context.Context, email string) (*models.GetUserResponse, error) {
+	const op = "service.user.GetByEmail"
+
+	validate := validator.New()
+	emailStr := models.GetUserValidate{Email: email}
+
+	err := validate.Struct(emailStr)
+	if err != nil {
+		for _, err := range err.(validator.ValidationErrors) {
+			s.log.Error(fmt.Sprintf("Field: %s, Tag: %s\n", err.Field(), err.Tag()))
+		}
+
+		return nil, fmt.Errorf("%s: %w", op, models.ErrEmailValidate)
+	}
+
+	userResp, err := s.storage.GetByEmail(email)
+	if err != nil {
+		if errors.Is(err, storage.ErrUserNotFound) {
+			s.log.Error("Get user by email with error", slog.String("email", email), slog.String("error", err.Error()))
+
+			return nil, fmt.Errorf("%s: %w", op, storage.ErrUserNotFound)
+		}
+		s.log.Error("Get user by email with error", slog.String("email", email), slog.String("error", err.Error()))
+
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return userResp, nil
+}
