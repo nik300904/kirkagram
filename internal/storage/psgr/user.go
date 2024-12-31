@@ -55,7 +55,7 @@ func (s *UserStorage) Update(updateUser models.UpdateUserRequest) error {
 	return nil
 }
 
-func (s *UserStorage) GetAllFollowers(userID int) (*[]models.GetAllFollowersRequest, error) {
+func (s *UserStorage) GetAllFollowers(userID int) (*[]models.GetAllFollowersResponse, error) {
 	const op = "storage.postgres.GetAllFollowers"
 
 	rows, err := s.db.Query(`
@@ -74,10 +74,48 @@ func (s *UserStorage) GetAllFollowers(userID int) (*[]models.GetAllFollowersRequ
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	var followers []models.GetAllFollowersRequest
+	var followers []models.GetAllFollowersResponse
 
 	for rows.Next() {
-		var follower models.GetAllFollowersRequest
+		var follower models.GetAllFollowersResponse
+
+		if err := rows.Scan(&follower.Username, &follower.ProfilePic); err != nil {
+			return nil, fmt.Errorf("%s: %w", op, err)
+		}
+
+		followers = append(followers, follower)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return &followers, nil
+}
+
+func (s *UserStorage) GetAllFollowing(userID int) (*[]models.GetAllFollowersResponse, error) {
+	const op = "storage.postgres.GetAllFollowing"
+
+	rows, err := s.db.Query(`
+		SELECT DISTINCT u.username, u.profile_pic
+		FROM "user" main_user
+		CROSS JOIN LATERAL unnest(main_user.followers) AS follower_id
+		JOIN "user" u ON u.id = follower_id
+		WHERE main_user.id = $1;
+	`, userID)
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, storage.ErrUserNotFound
+		}
+
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	var followers []models.GetAllFollowersResponse
+
+	for rows.Next() {
+		var follower models.GetAllFollowersResponse
 
 		if err := rows.Scan(&follower.Username, &follower.ProfilePic); err != nil {
 			return nil, fmt.Errorf("%s: %w", op, err)

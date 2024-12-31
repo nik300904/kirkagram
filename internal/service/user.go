@@ -14,7 +14,8 @@ import (
 type UserService interface {
 	GetByEmail(email string) (*models.GetUserResponse, error)
 	Update(updateUser models.UpdateUserRequest) error
-	GetAllFollowers(userID int) (*[]models.GetAllFollowersRequest, error)
+	GetAllFollowers(userID int) (*[]models.GetAllFollowersResponse, error)
+	GetAllFollowing(userID int) (*[]models.GetAllFollowersResponse, error)
 }
 
 type User struct {
@@ -85,7 +86,7 @@ func (s *User) Update(ctx context.Context, updateUser models.UpdateUserRequest) 
 	return nil
 }
 
-func (s *User) GetAllFollowers(ctx context.Context, userID int) (*[]models.GetAllFollowersRequest, error) {
+func (s *User) GetAllFollowers(ctx context.Context, userID int) (*[]models.GetAllFollowersResponse, error) {
 	const op = "service.user.GetAllFollowers"
 
 	followers, err := s.storage.GetAllFollowers(userID)
@@ -98,4 +99,19 @@ func (s *User) GetAllFollowers(ctx context.Context, userID int) (*[]models.GetAl
 	}
 
 	return followers, nil
+}
+
+func (s *User) GetAllFollowing(ctx context.Context, userID int) (*[]models.GetAllFollowersResponse, error) {
+	const op = "service.user.GetAllFollowing"
+
+	following, err := s.storage.GetAllFollowing(userID)
+	if err != nil {
+		if errors.Is(err, storage.ErrUserNotFound) {
+			s.log.Error("Get followers by userID with error", slog.Int("userID", userID), slog.String("error", err.Error()))
+
+			return nil, fmt.Errorf("%s: %w", op, storage.ErrUserNotFound)
+		}
+	}
+
+	return following, nil
 }
