@@ -1,9 +1,13 @@
 -- Создание таблицы "user"
 CREATE TABLE IF NOT EXISTS "user" (
-    id SERIAL PRIMARY KEY,
-    email VARCHAR(255) NOT NULL UNIQUE,
-    username VARCHAR(100) NOT NULL UNIQUE,
-    password VARCHAR(255) NOT NULL
+    id SERIAL PRIMARY KEY,                -- Автоинкрементный идентификатор
+    username VARCHAR(50) NOT NULL UNIQUE, -- Уникальное имя пользователя
+    email VARCHAR(100) NOT NULL UNIQUE,    -- Уникальный адрес электронной почты
+    password VARCHAR(255) NOT NULL,         -- Хэш пароля
+    bio TEXT,                               -- Биография пользователя
+    profile_pic VARCHAR(255),               -- URL профиля пользователя
+    followers INTEGER[],                        -- Массив ID подписчиков
+    following INTEGER[]                         -- Массив ID пользователей, на которых подписан
 );
 
 -- Создание таблицы "post"

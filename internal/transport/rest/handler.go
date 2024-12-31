@@ -15,6 +15,7 @@ import (
 
 type User interface {
 	GetByEmail(ctx context.Context, email string) (*models.GetUserResponse, error)
+	Update(ctx context.Context, updateUser models.UpdateUserRequest) error
 }
 
 type Handler struct {
@@ -43,7 +44,7 @@ func (h *Handler) InitRouter() *chi.Mux {
 }
 
 func (h *Handler) GetUser(w http.ResponseWriter, r *http.Request) {
-	h.log.Info("Get user going complete")
+	h.log.Info("Get user")
 
 	ctx := context.Background()
 	email := chi.URLParam(r, "email")
@@ -72,4 +73,44 @@ func (h *Handler) GetUser(w http.ResponseWriter, r *http.Request) {
 	h.log.Info("Get user by email completed", slog.String("email", email))
 
 	render.JSON(w, r, user)
+}
+
+func (h *Handler) UpdateUser(w http.ResponseWriter, r *http.Request) {
+	h.log.Info("Update user")
+
+	ctx := context.Background()
+
+	var updateUser models.UpdateUserRequest
+	if err := render.DecodeJSON(r.Body, &updateUser); err != nil {
+		h.log.Error("Update user with error", slog.String("error", err.Error()))
+
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, customErrors.NewError(err.Error()))
+
+		return
+	}
+
+	err := h.userService.Update(ctx, updateUser)
+	if err != nil {
+		if errors.Is(err, storage.ErrUserNotFound) {
+			h.log.Error("Update user with error", slog.String("error", err.Error()))
+
+			render.Status(r, http.StatusNotFound)
+			render.JSON(w, r, customErrors.NewError(err.Error()))
+
+			return
+		}
+
+		h.log.Error("Update user with error", slog.String("error", err.Error()))
+
+		render.Status(r, http.StatusInternalServerError)
+		render.JSON(w, r, customErrors.NewError(err.Error()))
+
+		return
+	}
+
+	h.log.Info("Update user completed")
+
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, nil)
 }

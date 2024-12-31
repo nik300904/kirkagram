@@ -13,6 +13,7 @@ import (
 
 type UserService interface {
 	GetByEmail(email string) (*models.GetUserResponse, error)
+	Update(updateUser models.UpdateUserRequest) error
 }
 
 type User struct {
@@ -52,4 +53,33 @@ func (s *User) GetByEmail(ctx context.Context, email string) (*models.GetUserRes
 	}
 
 	return userResp, nil
+}
+
+func (s *User) Update(ctx context.Context, updateUser models.UpdateUserRequest) error {
+	const op = "service.user.Update"
+
+	validate := validator.New()
+	emailStr := models.GetUserValidate{Email: updateUser.Email}
+
+	err := validate.Struct(emailStr)
+	if err != nil {
+		for _, err := range err.(validator.ValidationErrors) {
+			s.log.Error(fmt.Sprintf("Field: %s, Tag: %s\n", err.Field(), err.Tag()))
+		}
+
+		return fmt.Errorf("%s: %w", op, models.ErrEmailValidate)
+	}
+
+	err = s.storage.Update(updateUser)
+	if err != nil {
+		if errors.Is(err, storage.ErrUserNotFound) {
+			s.log.Error("Get user by email with error", slog.String("email", updateUser.Email), slog.String("error", err.Error()))
+
+			return fmt.Errorf("%s: %w", op, storage.ErrUserNotFound)
+		}
+
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	return nil
 }
