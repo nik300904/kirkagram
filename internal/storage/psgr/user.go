@@ -54,3 +54,41 @@ func (s *UserStorage) Update(updateUser models.UpdateUserRequest) error {
 
 	return nil
 }
+
+func (s *UserStorage) GetAllFollowers(userID int) (*[]models.GetAllFollowersRequest, error) {
+	const op = "storage.postgres.GetAllFollowers"
+
+	rows, err := s.db.Query(`
+		SELECT DISTINCT u.username, u.profile_pic
+		FROM "user" main_user
+		CROSS JOIN LATERAL unnest(main_user.followers) AS follower_id
+		JOIN "user" u ON u.id = follower_id
+		WHERE main_user.id = $1;
+	`, userID)
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, storage.ErrUserNotFound
+		}
+
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	var followers []models.GetAllFollowersRequest
+
+	for rows.Next() {
+		var follower models.GetAllFollowersRequest
+
+		if err := rows.Scan(&follower.Username, &follower.ProfilePic); err != nil {
+			return nil, fmt.Errorf("%s: %w", op, err)
+		}
+
+		followers = append(followers, follower)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return &followers, nil
+}

@@ -27,6 +27,11 @@ type GetUserValidate struct {
 	Email string `validate:"required,email"`
 }
 
+type GetAllFollowersRequest struct {
+	Username   string `json:"username"`
+	ProfilePic string `json:"profile_pic"`
+}
+
 var (
 	ErrEmailValidate = "invalid email"
 )
