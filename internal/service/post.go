@@ -7,6 +7,7 @@ import (
 
 type PostService interface {
 	CreatePost(post models.CreatePostRequest) error
+	GetAllPosts() (*[]models.Posts, error)
 }
 
 type Post struct {
@@ -14,7 +15,7 @@ type Post struct {
 	log     *slog.Logger
 }
 
-func NewPostService(storage PostService, log *slog.Logger) PostService {
+func NewPostService(storage PostService, log *slog.Logger) *Post {
 	return &Post{
 		storage: storage,
 		log:     log,
@@ -23,4 +24,8 @@ func NewPostService(storage PostService, log *slog.Logger) PostService {
 
 func (p *Post) CreatePost(post models.CreatePostRequest) error {
 	return p.storage.CreatePost(post)
+}
+
+func (p *Post) GetAllPosts() (*[]models.Posts, error) {
+	return p.storage.GetAllPosts()
 }

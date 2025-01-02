@@ -46,6 +46,7 @@ func (h *Handler) InitRouter() *chi.Mux {
 		r.Get("/photo/{key}", h.photoHandler.GetPhotoURL)
 		r.Post("/photo", h.photoHandler.UploadPhoto)
 		r.Post("/post", h.postHandler.CreatePost)
+		r.Get("/post/all", h.postHandler.GetAllPosts)
 	})
 
 	return router
