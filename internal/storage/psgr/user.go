@@ -41,12 +41,12 @@ func (s *UserStorage) UploadProfilePic(userID int, filename string) error {
 	return nil
 }
 
-func (s *UserStorage) GetByEmail(email string) (*models.GetUserResponse, error) {
+func (s *UserStorage) GetByID(ID string) (*models.GetUserResponse, error) {
 	const op = "storage.psgr.user.GetUser"
 
 	var user models.GetUserResponse
 
-	row := s.db.QueryRow(`SELECT "email", username FROM "user" WHERE "email" = $1`, email).Scan(&user.Email, &user.Username)
+	row := s.db.QueryRow(`SELECT "id", "email", "username", "bio", "profile_pic" FROM "user" WHERE "id" = $1`, ID).Scan(&user.ID, &user.Email, &user.Username, &user.Bio, &user.ProfilePic)
 
 	if row != nil {
 		if errors.Is(row, sql.ErrNoRows) {

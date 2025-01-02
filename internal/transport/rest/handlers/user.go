@@ -14,7 +14,7 @@ import (
 )
 
 type User interface {
-	GetByEmail(ctx context.Context, email string) (*models.GetUserResponse, error)
+	GetByID(ctx context.Context, ID string) (*models.GetUserResponse, error)
 	Update(ctx context.Context, updateUser models.UpdateUserRequest) error
 	GetAllFollowers(ctx context.Context, userID int) (*[]models.GetAllFollowersResponse, error)
 	UploadProfilePic(userID int, filename string) error
@@ -36,14 +36,14 @@ func (h *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 	h.log.Info("Get user")
 
 	ctx := context.Background()
-	email := chi.URLParam(r, "email")
+	id := chi.URLParam(r, "id")
 
-	h.log.Info("Get user by email", slog.String("email", email))
+	h.log.Info("Get user by email", slog.String("email", id))
 
-	user, err := h.userService.GetByEmail(ctx, email)
+	user, err := h.userService.GetByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, storage.ErrUserNotFound) {
-			h.log.Error("Get user by email with error", slog.String("email", email), slog.String("error", err.Error()))
+			h.log.Error("Get user by email with error", slog.String("email", id), slog.String("error", err.Error()))
 
 			render.Status(r, http.StatusNotFound)
 			render.JSON(w, r, customErrors.NewError(err.Error()))
@@ -51,7 +51,7 @@ func (h *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		h.log.Error("Get user by email with error", slog.String("email", email), slog.String("error", err.Error()))
+		h.log.Error("Get user by email with error", slog.String("email", id), slog.String("error", err.Error()))
 
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, customErrors.NewError(err.Error()))
@@ -59,7 +59,7 @@ func (h *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.log.Info("Get user by email completed", slog.String("email", email))
+	h.log.Info("Get user by email completed", slog.String("email", id))
 
 	render.JSON(w, r, user)
 }

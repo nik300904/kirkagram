@@ -19,8 +19,11 @@ type UpdateUserRequest struct {
 }
 
 type GetUserResponse struct {
-	Username string `json:"username"`
-	Email    string `json:"email"`
+	ID         int    `json:"id"`
+	Username   string `json:"username"`
+	Email      string `json:"email"`
+	ProfilePic string `json:"profile_pic"`
+	Bio        string `json:"bio"`
 }
 
 type GetUserValidate struct {

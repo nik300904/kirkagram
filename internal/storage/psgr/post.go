@@ -37,3 +37,5 @@ func (p *PostStorage) CreatePost(post models.CreatePostRequest) error {
 
 	return nil
 }
+
+//func (p *PostStorage) GetAllPosts()

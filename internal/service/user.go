@@ -12,7 +12,7 @@ import (
 )
 
 type UserService interface {
-	GetByEmail(email string) (*models.GetUserResponse, error)
+	GetByID(ID string) (*models.GetUserResponse, error)
 	Update(updateUser models.UpdateUserRequest) error
 	GetAllFollowers(userID int) (*[]models.GetAllFollowersResponse, error)
 	GetAllFollowing(userID int) (*[]models.GetAllFollowersResponse, error)
@@ -32,34 +32,10 @@ func (s *User) UploadProfilePic(userID int, filename string) error {
 	return s.storage.UploadProfilePic(userID, filename)
 }
 
-func (s *User) GetByEmail(ctx context.Context, email string) (*models.GetUserResponse, error) {
+func (s *User) GetByID(ctx context.Context, ID string) (*models.GetUserResponse, error) {
 	const op = "service.user.GetByEmail"
 
-	validate := validator.New()
-	emailStr := models.GetUserValidate{Email: email}
-
-	err := validate.Struct(emailStr)
-	if err != nil {
-		for _, err := range err.(validator.ValidationErrors) {
-			s.log.Error(fmt.Sprintf("Field: %s, Tag: %s\n", err.Field(), err.Tag()))
-		}
-
-		return nil, fmt.Errorf("%s: %w", op, models.ErrEmailValidate)
-	}
-
-	userResp, err := s.storage.GetByEmail(email)
-	if err != nil {
-		if errors.Is(err, storage.ErrUserNotFound) {
-			s.log.Error("Get user by email with error", slog.String("email", email), slog.String("error", err.Error()))
-
-			return nil, fmt.Errorf("%s: %w", op, storage.ErrUserNotFound)
-		}
-		s.log.Error("Get user by email with error", slog.String("email", email), slog.String("error", err.Error()))
-
-		return nil, fmt.Errorf("%s: %w", op, err)
-	}
-
-	return userResp, nil
+	return s.storage.GetByID(ID)
 }
 
 func (s *User) Update(ctx context.Context, updateUser models.UpdateUserRequest) error {
