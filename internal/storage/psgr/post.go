@@ -2,6 +2,7 @@ package psgr
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"kirkagram/internal/models"
 	"kirkagram/internal/storage"
@@ -63,4 +64,21 @@ func (p *PostStorage) GetAllPosts() (*[]models.Posts, error) {
 	}
 
 	return &posts, nil
+}
+
+func (p *PostStorage) GetPostByID(ID int64) (*models.Posts, error) {
+	const op = "storage.psgr.post.GetPostByID"
+
+	var post models.Posts
+
+	err := p.db.QueryRow("SELECT * FROM post WHERE id = $1", ID).Scan(&post.ID, &post.UserID, &post.ImageURL, &post.Caption, &post.CreatedAt, &post.UpdatedAt)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, storage.ErrPostNotFound
+		}
+
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return &post, nil
 }

@@ -39,12 +39,12 @@ func NewPhotoHandler(userService UserForPhoto, photoService Photo, log *slog.Log
 func (h *PhotoHandler) UploadPhoto(w http.ResponseWriter, r *http.Request) {
 	const op = "rest.handlers.photo.UploadPhoto"
 
-	h.log.With(slog.String("op", op))
-	h.log.Info("Get photo URL")
+	log := h.log.With(slog.String("op", op))
+	log.Info("Get photo URL")
 
 	err := r.ParseMultipartForm(10 << 20)
 	if err != nil {
-		h.log.Error("Failed to parse multipart form", slog.String("error", err.Error()))
+		log.Error("Failed to parse multipart form", slog.String("error", err.Error()))
 
 		render.Status(r, http.StatusLengthRequired)
 		render.JSON(w, r, customErrors.NewError(err.Error()))
@@ -54,7 +54,7 @@ func (h *PhotoHandler) UploadPhoto(w http.ResponseWriter, r *http.Request) {
 
 	file, header, err := r.FormFile("photo")
 	if err != nil {
-		h.log.Error("Failed to get file from form", slog.String("error", err.Error()))
+		log.Error("Failed to get file from form", slog.String("error", err.Error()))
 
 		render.Status(r, http.StatusBadRequest)
 		render.JSON(w, r, customErrors.NewError(err.Error()))
@@ -65,7 +65,7 @@ func (h *PhotoHandler) UploadPhoto(w http.ResponseWriter, r *http.Request) {
 
 	fileBytes, err := io.ReadAll(file)
 	if err != nil {
-		h.log.Error("Failed to read file", slog.String("error", err.Error()))
+		log.Error("Failed to read file", slog.String("error", err.Error()))
 
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, customErrors.NewError(err.Error()))
@@ -82,7 +82,7 @@ func (h *PhotoHandler) UploadPhoto(w http.ResponseWriter, r *http.Request) {
 	userID := r.FormValue("id")
 	num, err := strconv.Atoi(userID)
 	if err != nil {
-		h.log.Error("Failed to convert user ID to int", slog.String("error", err.Error()))
+		log.Error("Failed to convert user ID to int", slog.String("error", err.Error()))
 
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, customErrors.NewError(err.Error()))
@@ -92,7 +92,7 @@ func (h *PhotoHandler) UploadPhoto(w http.ResponseWriter, r *http.Request) {
 
 	err = h.userService.UploadProfilePic(num, filename)
 	if err != nil {
-		h.log.Error("Failed to upload file to bd", slog.String("error", err.Error()))
+		log.Error("Failed to upload file to bd", slog.String("error", err.Error()))
 
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, customErrors.NewError(err.Error()))
@@ -102,7 +102,7 @@ func (h *PhotoHandler) UploadPhoto(w http.ResponseWriter, r *http.Request) {
 
 	err = h.photoService.UploadPhoto(filename, fileBytes)
 	if err != nil {
-		h.log.Error("Failed to upload file", slog.String("error", err.Error()))
+		log.Error("Failed to upload file", slog.String("error", err.Error()))
 
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, customErrors.NewError(err.Error()))
@@ -117,14 +117,14 @@ func (h *PhotoHandler) UploadPhoto(w http.ResponseWriter, r *http.Request) {
 func (h *PhotoHandler) GetPhotoURL(w http.ResponseWriter, r *http.Request) {
 	const op = "rest.handlers.photo.GetPhotoURL"
 
-	h.log.With(slog.String("op", op))
-	h.log.Info("Get photo URL")
+	log := h.log.With(slog.String("op", op))
+	log.Info("Get photo URL")
 
 	key := chi.URLParam(r, "key")
 
 	photo, err := h.photoService.GetPhoto(key)
 	if err != nil {
-		h.log.Error("Failed to get photo from storage", slog.String("error", err.Error()))
+		log.Error("Failed to get photo from storage", slog.String("error", err.Error()))
 
 		render.Status(r, http.StatusNotFound)
 		render.JSON(w, r, customErrors.NewError(err.Error()))
@@ -132,7 +132,7 @@ func (h *PhotoHandler) GetPhotoURL(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.log.Info("Get photo URL completed successfully")
+	log.Info("Get photo URL completed successfully")
 
 	render.Status(r, http.StatusOK)
 	w.Write(photo)

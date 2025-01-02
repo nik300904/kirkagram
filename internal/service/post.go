@@ -8,6 +8,7 @@ import (
 type PostService interface {
 	CreatePost(post models.CreatePostRequest) error
 	GetAllPosts() (*[]models.Posts, error)
+	GetPostByID(ID int64) (*models.Posts, error)
 }
 
 type Post struct {
@@ -28,4 +29,8 @@ func (p *Post) CreatePost(post models.CreatePostRequest) error {
 
 func (p *Post) GetAllPosts() (*[]models.Posts, error) {
 	return p.storage.GetAllPosts()
+}
+
+func (p *Post) GetPostByID(ID int64) (*models.Posts, error) {
+	return p.storage.GetPostByID(ID)
 }

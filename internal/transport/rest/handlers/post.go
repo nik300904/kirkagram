@@ -2,13 +2,17 @@ package handlers
 
 import (
 	"crypto/sha256"
+	"errors"
 	"fmt"
+	"github.com/go-chi/chi"
 	"github.com/go-chi/render"
 	"io"
 	"kirkagram/internal/lib/logger/handlers/customErrors"
 	"kirkagram/internal/models"
+	"kirkagram/internal/storage"
 	"log/slog"
 	"net/http"
+	"strconv"
 	"time"
 )
 
@@ -19,6 +23,7 @@ type PhotoUpl interface {
 type Post interface {
 	CreatePost(post models.CreatePostRequest) error
 	GetAllPosts() (*[]models.Posts, error)
+	GetPostByID(ID int64) (*models.Posts, error)
 }
 
 type PostHandler struct {
@@ -35,15 +40,54 @@ func NewPostHandler(postService Post, photoService PhotoUpl, log *slog.Logger) *
 	}
 }
 
+func (p *PostHandler) GetPostByID(w http.ResponseWriter, r *http.Request) {
+	const op = "rest.handlers.post.GetPostByID"
+
+	log := p.log.With(slog.String("op", op))
+	log.Info("starting get post by id post")
+
+	id := chi.URLParam(r, "id")
+	num, err := strconv.Atoi(id)
+	if err != nil {
+		log.Error("error converting id to int", slog.String("op", op))
+
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, customErrors.NewError(err.Error()))
+
+		return
+	}
+
+	post, err := p.postService.GetPostByID(int64(num))
+	if err != nil {
+		if errors.Is(err, storage.ErrPostNotFound) {
+			log.Error("post not found", slog.String("error", err.Error()), slog.String("op", op))
+
+			render.Status(r, http.StatusNotFound)
+			render.JSON(w, r, customErrors.NewError(storage.ErrPostNotFound.Error()))
+
+			return
+		}
+		log.Error("error getting post by id post", slog.String("op", op))
+
+		render.Status(r, http.StatusInternalServerError)
+		render.JSON(w, r, customErrors.NewError(err.Error()))
+
+		return
+	}
+
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, post)
+}
+
 func (p *PostHandler) CreatePost(w http.ResponseWriter, r *http.Request) {
 	const op = "rest.handlers.post.CreatePost"
 
-	p.log.With(slog.String("op", op))
-	p.log.Info("starting creating post")
+	log := p.log.With(slog.String("op", op))
+	log.Info("starting creating post")
 
 	err := r.ParseMultipartForm(10 << 20)
 	if err != nil {
-		p.log.Error("Failed to parse multipart form", slog.String("error", err.Error()))
+		log.Error("Failed to parse multipart form", slog.String("error", err.Error()))
 
 		render.Status(r, http.StatusLengthRequired)
 		render.JSON(w, r, customErrors.NewError(err.Error()))
@@ -61,7 +105,7 @@ func (p *PostHandler) CreatePost(w http.ResponseWriter, r *http.Request) {
 
 	fileRead, err := io.ReadAll(file)
 	if err != nil {
-		p.log.Error("Failed to read file", slog.String("error", err.Error()))
+		log.Error("Failed to read file", slog.String("error", err.Error()))
 
 		render.Status(r, http.StatusLengthRequired)
 		render.JSON(w, r, customErrors.NewError(err.Error()))
@@ -74,15 +118,25 @@ func (p *PostHandler) CreatePost(w http.ResponseWriter, r *http.Request) {
 
 	filenameURL := "/api/photo/" + filename
 
+	userIDInt, err := strconv.Atoi(userID)
+	if err != nil {
+		log.Error("error converting user id to int", slog.String("error", err.Error()))
+
+		render.Status(r, http.StatusInternalServerError)
+		render.JSON(w, r, customErrors.NewError(err.Error()))
+
+		return
+	}
+
 	post := models.CreatePostRequest{
-		UserID:   userID,
+		UserID:   userIDInt,
 		Caption:  caption,
 		ImageURL: filenameURL,
 	}
 
 	err = p.postService.CreatePost(post)
 	if err != nil {
-		p.log.Error("Unable to create post", slog.String("error", err.Error()))
+		log.Error("Unable to create post", slog.String("error", err.Error()))
 
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, customErrors.NewError(err.Error()))
@@ -92,7 +146,7 @@ func (p *PostHandler) CreatePost(w http.ResponseWriter, r *http.Request) {
 
 	err = p.photoService.UploadPhoto(filename, fileRead)
 	if err != nil {
-		p.log.Error("Failed to upload file", slog.String("error", err.Error()))
+		log.Error("Failed to upload file", slog.String("error", err.Error()))
 
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, customErrors.NewError(err.Error()))
@@ -100,7 +154,7 @@ func (p *PostHandler) CreatePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	p.log.Info("finished creation", slog.String("filename", filename))
+	log.Info("finished creation", slog.String("filename", filename))
 
 	render.Status(r, http.StatusCreated)
 }
@@ -108,12 +162,12 @@ func (p *PostHandler) CreatePost(w http.ResponseWriter, r *http.Request) {
 func (p *PostHandler) GetAllPosts(w http.ResponseWriter, r *http.Request) {
 	const op = "rest.handlers.post.GetAllPosts"
 
-	p.log.With(slog.String("op", op))
-	p.log.Info("starting getting all posts")
+	log := p.log.With(slog.String("op", op))
+	log.Info("starting getting all posts")
 
 	posts, err := p.postService.GetAllPosts()
 	if err != nil {
-		p.log.Error("Failed to get all posts", slog.String("error", err.Error()))
+		log.Error("Failed to get all posts", slog.String("error", err.Error()))
 
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, customErrors.NewError(err.Error()))
@@ -121,7 +175,7 @@ func (p *PostHandler) GetAllPosts(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	p.log.Info("finished getting all posts")
+	log.Info("finished getting all posts")
 
 	render.Status(r, http.StatusOK)
 	render.JSON(w, r, posts)

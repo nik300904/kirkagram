@@ -39,14 +39,18 @@ func (h *Handler) InitRouter() *chi.Mux {
 
 	router.Route("/api", func(r chi.Router) {
 		h.log.Info("Init api routes")
+
 		r.Get("/user/{id}", h.userHandler.GetUser)
 		r.Put("/user", h.userHandler.UpdateUser)
 		r.Get("/user/{userID}/followers", h.userHandler.GetAllFollowers)
 		r.Get("/user/{userID}/following", h.userHandler.GetAllFollowing)
+
 		r.Get("/photo/{key}", h.photoHandler.GetPhotoURL)
 		r.Post("/photo", h.photoHandler.UploadPhoto)
+
 		r.Post("/post", h.postHandler.CreatePost)
 		r.Get("/post/all", h.postHandler.GetAllPosts)
+		r.Get("/post/{id}", h.postHandler.GetPostByID)
 	})
 
 	return router

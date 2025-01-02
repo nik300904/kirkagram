@@ -33,17 +33,20 @@ func NewUserHandler(userService User, log *slog.Logger) *UserHandler {
 }
 
 func (h *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
-	h.log.Info("Get user")
+	const op = "rest.handlers.user.GetUser"
+
+	log := h.log.With(slog.String("op", op))
+	log.Info("Get user")
 
 	ctx := context.Background()
 	id := chi.URLParam(r, "id")
 
-	h.log.Info("Get user by email", slog.String("email", id))
+	log.Info("Get user by email", slog.String("email", id))
 
 	user, err := h.userService.GetByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, storage.ErrUserNotFound) {
-			h.log.Error("Get user by email with error", slog.String("email", id), slog.String("error", err.Error()))
+			log.Error("Get user by email with error", slog.String("email", id), slog.String("error", err.Error()))
 
 			render.Status(r, http.StatusNotFound)
 			render.JSON(w, r, customErrors.NewError(err.Error()))
@@ -51,7 +54,7 @@ func (h *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		h.log.Error("Get user by email with error", slog.String("email", id), slog.String("error", err.Error()))
+		log.Error("Get user by email with error", slog.String("email", id), slog.String("error", err.Error()))
 
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, customErrors.NewError(err.Error()))
@@ -59,19 +62,22 @@ func (h *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.log.Info("Get user by email completed", slog.String("email", id))
+	log.Info("Get user by email completed", slog.String("email", id))
 
 	render.JSON(w, r, user)
 }
 
 func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
-	h.log.Info("Update user")
+	const op = "rest.handlers.user.UpdateUser"
+
+	log := h.log.With(slog.String("op", op))
+	log.Info("Update user")
 
 	ctx := context.Background()
 
 	var updateUser models.UpdateUserRequest
 	if err := render.DecodeJSON(r.Body, &updateUser); err != nil {
-		h.log.Error("Update user with error", slog.String("error", err.Error()))
+		log.Error("Update user with error", slog.String("error", err.Error()))
 
 		render.Status(r, http.StatusBadRequest)
 		render.JSON(w, r, customErrors.NewError(err.Error()))
@@ -82,7 +88,7 @@ func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	err := h.userService.Update(ctx, updateUser)
 	if err != nil {
 		if errors.Is(err, storage.ErrUserNotFound) {
-			h.log.Error("Update user with error", slog.String("error", err.Error()))
+			log.Error("Update user with error", slog.String("error", err.Error()))
 
 			render.Status(r, http.StatusNotFound)
 			render.JSON(w, r, customErrors.NewError(err.Error()))
@@ -90,7 +96,7 @@ func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		h.log.Error("Update user with error", slog.String("error", err.Error()))
+		log.Error("Update user with error", slog.String("error", err.Error()))
 
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, customErrors.NewError(err.Error()))
@@ -98,20 +104,23 @@ func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.log.Info("Update user completed")
+	log.Info("Update user completed")
 
 	render.Status(r, http.StatusOK)
 	render.JSON(w, r, nil)
 }
 
 func (h *UserHandler) GetAllFollowers(w http.ResponseWriter, r *http.Request) {
-	h.log.Info("Get all followers")
+	const op = "rest.handlers.user.GetAllFollowers"
+
+	log := h.log.With(slog.String("op", op))
+	log.Info("Get all followers")
 
 	ctx := context.Background()
 	userID := chi.URLParam(r, "userID")
 
 	if userID == "" {
-		h.log.Error("Get all followers with error", slog.String("error", "userID is empty"))
+		log.Error("Get all followers with error", slog.String("error", "userID is empty"))
 
 		render.Status(r, http.StatusBadRequest)
 		render.JSON(w, r, customErrors.NewError("userID is empty"))
@@ -121,7 +130,7 @@ func (h *UserHandler) GetAllFollowers(w http.ResponseWriter, r *http.Request) {
 
 	userIDInt, err := strconv.Atoi(userID)
 	if err != nil {
-		h.log.Error("Get all followers with error", slog.String("userID", userID), slog.String("error", err.Error()))
+		log.Error("Get all followers with error", slog.String("userID", userID), slog.String("error", err.Error()))
 
 		render.Status(r, http.StatusBadRequest)
 		render.JSON(w, r, customErrors.NewError(err.Error()))
@@ -132,7 +141,7 @@ func (h *UserHandler) GetAllFollowers(w http.ResponseWriter, r *http.Request) {
 	followers, err := h.userService.GetAllFollowers(ctx, userIDInt)
 	if err != nil {
 		if errors.Is(err, storage.ErrUserNotFound) {
-			h.log.Error("Get all followers with error", slog.Int("userID", userIDInt), slog.String("error", err.Error()))
+			log.Error("Get all followers with error", slog.Int("userID", userIDInt), slog.String("error", err.Error()))
 
 			render.Status(r, http.StatusNotFound)
 			render.JSON(w, r, customErrors.NewError(err.Error()))
@@ -140,7 +149,7 @@ func (h *UserHandler) GetAllFollowers(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		h.log.Error("Get all followers with error", slog.Int("userID", userIDInt), slog.String("error", err.Error()))
+		log.Error("Get all followers with error", slog.Int("userID", userIDInt), slog.String("error", err.Error()))
 
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, customErrors.NewError(err.Error()))
@@ -148,20 +157,23 @@ func (h *UserHandler) GetAllFollowers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.log.Info("Get all followers completed", slog.Int("userID", userIDInt))
+	log.Info("Get all followers completed", slog.Int("userID", userIDInt))
 
 	render.Status(r, http.StatusOK)
 	render.JSON(w, r, followers)
 }
 
 func (h *UserHandler) GetAllFollowing(w http.ResponseWriter, r *http.Request) {
-	h.log.Info("Get all following")
+	const op = "rest.handlers.user.GetAllFollowing"
+
+	log := h.log.With(slog.String("op", op))
+	log.Info("Get all following")
 
 	ctx := context.Background()
 	userID := chi.URLParam(r, "userID")
 
 	if userID == "" {
-		h.log.Error("Get all following with error", slog.String("error", "userID is empty"))
+		log.Error("Get all following with error", slog.String("error", "userID is empty"))
 
 		render.Status(r, http.StatusBadRequest)
 		render.JSON(w, r, customErrors.NewError("userID is empty"))
@@ -171,7 +183,7 @@ func (h *UserHandler) GetAllFollowing(w http.ResponseWriter, r *http.Request) {
 
 	userIDInt, err := strconv.Atoi(userID)
 	if err != nil {
-		h.log.Error("Get all following with error", slog.String("userID", userID), slog.String("error", err.Error()))
+		log.Error("Get all following with error", slog.String("userID", userID), slog.String("error", err.Error()))
 
 		render.Status(r, http.StatusBadRequest)
 		render.JSON(w, r, customErrors.NewError(err.Error()))
@@ -182,7 +194,7 @@ func (h *UserHandler) GetAllFollowing(w http.ResponseWriter, r *http.Request) {
 	followers, err := h.userService.GetAllFollowers(ctx, userIDInt)
 	if err != nil {
 		if errors.Is(err, storage.ErrUserNotFound) {
-			h.log.Error("Get all following with error", slog.Int("userID", userIDInt), slog.String("error", err.Error()))
+			log.Error("Get all following with error", slog.Int("userID", userIDInt), slog.String("error", err.Error()))
 
 			render.Status(r, http.StatusNotFound)
 			render.JSON(w, r, customErrors.NewError(err.Error()))
@@ -190,7 +202,7 @@ func (h *UserHandler) GetAllFollowing(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		h.log.Error("Get all following with error", slog.Int("userID", userIDInt), slog.String("error", err.Error()))
+		log.Error("Get all following with error", slog.Int("userID", userIDInt), slog.String("error", err.Error()))
 
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, customErrors.NewError(err.Error()))
@@ -198,7 +210,7 @@ func (h *UserHandler) GetAllFollowing(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.log.Info("Get all following completed", slog.Int("userID", userIDInt))
+	log.Info("Get all following completed", slog.Int("userID", userIDInt))
 
 	render.Status(r, http.StatusOK)
 	render.JSON(w, r, followers)
