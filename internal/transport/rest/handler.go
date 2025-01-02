@@ -21,6 +21,7 @@ type User interface {
 	GetByEmail(ctx context.Context, email string) (*models.GetUserResponse, error)
 	Update(ctx context.Context, updateUser models.UpdateUserRequest) error
 	GetAllFollowers(ctx context.Context, userID int) (*[]models.GetAllFollowersResponse, error)
+	UploadProfilePic(userID int, filename string) error
 }
 
 type Photo interface {
@@ -98,6 +99,27 @@ func (h *Handler) UploadPhoto(w http.ResponseWriter, r *http.Request) {
 	filename := header.Filename
 	hash := sha256.Sum256([]byte(filename))
 	filename = fmt.Sprintf("%x", hash[:8])
+
+	userID := r.FormValue("id")
+	num, err := strconv.Atoi(userID)
+	if err != nil {
+		h.log.Error("Failed to convert user ID to int", slog.String("error", err.Error()))
+
+		render.Status(r, http.StatusInternalServerError)
+		render.JSON(w, r, customErrors.NewError(err.Error()))
+
+		return
+	}
+
+	err = h.userService.UploadProfilePic(num, filename)
+	if err != nil {
+		h.log.Error("Failed to upload file to bd", slog.String("error", err.Error()))
+
+		render.Status(r, http.StatusInternalServerError)
+		render.JSON(w, r, customErrors.NewError(err.Error()))
+
+		return
+	}
 
 	err = h.photoService.UploadPhoto(filename, fileBytes)
 	if err != nil {

@@ -16,6 +16,7 @@ type UserService interface {
 	Update(updateUser models.UpdateUserRequest) error
 	GetAllFollowers(userID int) (*[]models.GetAllFollowersResponse, error)
 	GetAllFollowing(userID int) (*[]models.GetAllFollowersResponse, error)
+	UploadProfilePic(userID int, filename string) error
 }
 
 type User struct {
@@ -25,6 +26,10 @@ type User struct {
 
 func NewUserService(log *slog.Logger, storage UserService) *User {
 	return &User{storage: storage, log: log}
+}
+
+func (s *User) UploadProfilePic(userID int, filename string) error {
+	return s.storage.UploadProfilePic(userID, filename)
 }
 
 func (s *User) GetByEmail(ctx context.Context, email string) (*models.GetUserResponse, error) {

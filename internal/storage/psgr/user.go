@@ -16,6 +16,31 @@ func NewUserStorage(db *sql.DB) *UserStorage {
 	return &UserStorage{db: db}
 }
 
+func (s *UserStorage) UploadProfilePic(userID int, filename string) error {
+	const op = "storage.postgres.UploadProfilePic"
+
+	profilePic := fmt.Sprintf("api/photo/%v", filename)
+
+	exec, err := s.db.Exec(`UPDATE "user" SET "profile_pic" = $1 WHERE "id" = $2`, profilePic, userID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return fmt.Errorf("%s: %w", op, storage.ErrUserNotFound)
+		}
+
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	count, err := exec.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+	if count == 0 {
+		return fmt.Errorf("%s: %w", op, storage.ErrUserNotFound)
+	}
+
+	return nil
+}
+
 func (s *UserStorage) GetByEmail(email string) (*models.GetUserResponse, error) {
 	const op = "storage.postgres.GetUser"
 

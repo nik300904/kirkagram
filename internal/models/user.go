@@ -32,6 +32,10 @@ type GetAllFollowersResponse struct {
 	ProfilePic string `json:"profile_pic"`
 }
 
+type UserID struct {
+	ID int `json:"id"`
+}
+
 var (
 	ErrEmailValidate = "invalid email"
 )

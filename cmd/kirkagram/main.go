@@ -20,7 +20,6 @@ const (
 )
 
 func main() {
-	// TODO: инициализация конфига
 	cfg := config.New()
 	db := storage.New(cfg)
 	S3Client := storage.NewS3Client()
