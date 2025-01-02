@@ -40,7 +40,9 @@ func main() {
 
 	userHandler := handlers.NewUserHandler(userService, log)
 	photoHandler := handlers.NewPhotoHandler(userService, photoService, log)
-	handler := rest.NewHandler(log, userHandler, photoHandler, postService)
+	postHandler := handlers.NewPostHandler(postService, photoService, log)
+
+	handler := rest.NewHandler(log, userHandler, photoHandler, postHandler)
 
 	srv := &http.Server{
 		Addr:    cfg.HttpServe.Address,

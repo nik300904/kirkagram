@@ -10,6 +10,7 @@ import (
 	"log/slog"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 type Photo interface {
@@ -36,7 +37,7 @@ func NewPhotoHandler(userService UserForPhoto, photoService Photo, log *slog.Log
 }
 
 func (h *PhotoHandler) UploadPhoto(w http.ResponseWriter, r *http.Request) {
-	const op = "transport.rest.handlers.UploadPhoto"
+	const op = "rest.handlers.photo.UploadPhoto"
 
 	h.log.With(slog.String("op", op))
 	h.log.Info("Get photo URL")
@@ -72,6 +73,9 @@ func (h *PhotoHandler) UploadPhoto(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	filename := header.Filename
+	currentTime := time.Now()
+	timestampString := currentTime.Format("2006-01-02_15-04-05.000000")
+	filename = filename + timestampString
 	hash := sha256.Sum256([]byte(filename))
 	filename = fmt.Sprintf("%x", hash[:8])
 
@@ -111,7 +115,7 @@ func (h *PhotoHandler) UploadPhoto(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *PhotoHandler) GetPhotoURL(w http.ResponseWriter, r *http.Request) {
-	const op = "transport.rest.handlers.GetPhotoURL"
+	const op = "rest.handlers.photo.GetPhotoURL"
 
 	h.log.With(slog.String("op", op))
 	h.log.Info("Get photo URL")

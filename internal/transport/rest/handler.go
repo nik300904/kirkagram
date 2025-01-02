@@ -21,12 +21,12 @@ type Post interface {
 type Handler struct {
 	userHandler  *handlers.UserHandler
 	photoHandler *handlers.PhotoHandler
-	postService  Post
+	postHandler  *handlers.PostHandler
 	log          *slog.Logger
 }
 
-func NewHandler(log *slog.Logger, userHandler *handlers.UserHandler, photoHandler *handlers.PhotoHandler, postService Post) *Handler {
-	return &Handler{userHandler: userHandler, photoHandler: photoHandler, postService: postService, log: log}
+func NewHandler(log *slog.Logger, userHandler *handlers.UserHandler, photoHandler *handlers.PhotoHandler, postHandler *handlers.PostHandler) *Handler {
+	return &Handler{userHandler: userHandler, photoHandler: photoHandler, postHandler: postHandler, log: log}
 }
 
 func (h *Handler) InitRouter() *chi.Mux {
@@ -45,6 +45,7 @@ func (h *Handler) InitRouter() *chi.Mux {
 		r.Get("/user/{userID}/following", h.userHandler.GetAllFollowing)
 		r.Get("/photo/{key}", h.photoHandler.GetPhotoURL)
 		r.Post("/photo", h.photoHandler.UploadPhoto)
+		r.Post("/post", h.postHandler.CreatePost)
 	})
 
 	return router
