@@ -1,10 +1,13 @@
 package storage
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"fmt"
-	"kirkagram/internal/config"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
+	internalConfig "kirkagram/internal/config"
 
 	_ "github.com/lib/pq"
 )
@@ -22,9 +25,10 @@ var (
 	ErrUserNotFound      = errors.New("User not found")
 	ErrEmailExists       = errors.New("Email already exists")
 	ErrIncorrectPassword = errors.New("Incorrect password")
+	ErrNoSuchKey         = errors.New("No such key")
 )
 
-func New(cfg *config.Config) *sql.DB {
+func New(cfg *internalConfig.Config) *sql.DB {
 	// info := ConnectionInfo{
 	// 	Host:     "localhost",
 	// 	Port:     5432,
@@ -50,4 +54,15 @@ func New(cfg *config.Config) *sql.DB {
 	}
 
 	return db
+}
+
+func NewS3Client() *s3.Client {
+	cfgS3, err := config.LoadDefaultConfig(context.Background())
+	if err != nil {
+		panic(err)
+	}
+
+	client := s3.NewFromConfig(cfgS3)
+
+	return client
 }

@@ -20,13 +20,18 @@ type User interface {
 	GetAllFollowers(ctx context.Context, userID int) (*[]models.GetAllFollowersResponse, error)
 }
 
-type Handler struct {
-	userService User
-	log         *slog.Logger
+type Photo interface {
+	GetPhoto(key string) ([]byte, error)
 }
 
-func NewHandler(log *slog.Logger, userService User) *Handler {
-	return &Handler{userService: userService, log: log}
+type Handler struct {
+	userService  User
+	photoService Photo
+	log          *slog.Logger
+}
+
+func NewHandler(log *slog.Logger, userService User, photoService Photo) *Handler {
+	return &Handler{userService: userService, photoService: photoService, log: log}
 }
 
 func (h *Handler) InitRouter() *chi.Mux {
@@ -43,9 +48,34 @@ func (h *Handler) InitRouter() *chi.Mux {
 		r.Put("/user", h.UpdateUser)
 		r.Get("/user/{userID}/followers", h.GetAllFollowers)
 		r.Get("/user/{userID}/following", h.GetAllFollowing)
+		r.Get("/photo/{key}", h.GetPhotoURL)
 	})
 
 	return router
+}
+
+func (h *Handler) GetPhotoURL(w http.ResponseWriter, r *http.Request) {
+	const op = "transport.rest.GetPhotoURL"
+
+	h.log.With(slog.String("op", op))
+	h.log.Info("Get photo URL")
+
+	key := chi.URLParam(r, "key")
+
+	photo, err := h.photoService.GetPhoto(key)
+	if err != nil {
+		h.log.Error("Failed to get photo from storage", slog.String("error", err.Error()))
+
+		render.Status(r, http.StatusNotFound)
+		render.JSON(w, r, customErrors.NewError(err.Error()))
+
+		return
+	}
+
+	h.log.Info("Get photo URL completed successfully")
+
+	render.Status(r, http.StatusOK)
+	w.Write(photo)
 }
 
 func (h *Handler) GetUser(w http.ResponseWriter, r *http.Request) {
