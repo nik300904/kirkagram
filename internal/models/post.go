@@ -7,6 +7,12 @@ type Posts struct {
 	UserID    string    `json:"user_id"`
 	ImageURL  string    `json:"image_url"`
 	Caption   string    `json:"caption"`
-	Likes     int       `json:"likes"`
 	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
+type CreatePostRequest struct {
+	UserID   string `json:"user_id"`
+	Caption  string `json:"caption"`
+	ImageURL string `json:"image_url"`
 }

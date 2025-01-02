@@ -26,6 +26,7 @@ var (
 	ErrEmailExists       = errors.New("Email already exists")
 	ErrIncorrectPassword = errors.New("Incorrect password")
 	ErrNoSuchKey         = errors.New("No such key")
+	ErrPostExists        = errors.New("Post already exists")
 )
 
 func New(cfg *internalConfig.Config) *sql.DB {

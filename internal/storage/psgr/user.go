@@ -17,7 +17,7 @@ func NewUserStorage(db *sql.DB) *UserStorage {
 }
 
 func (s *UserStorage) UploadProfilePic(userID int, filename string) error {
-	const op = "storage.postgres.UploadProfilePic"
+	const op = "storage.psgr.user.UploadProfilePic"
 
 	profilePic := fmt.Sprintf("api/photo/%v", filename)
 
@@ -42,7 +42,7 @@ func (s *UserStorage) UploadProfilePic(userID int, filename string) error {
 }
 
 func (s *UserStorage) GetByEmail(email string) (*models.GetUserResponse, error) {
-	const op = "storage.postgres.GetUser"
+	const op = "storage.psgr.user.GetUser"
 
 	var user models.GetUserResponse
 
@@ -60,7 +60,7 @@ func (s *UserStorage) GetByEmail(email string) (*models.GetUserResponse, error) 
 }
 
 func (s *UserStorage) Update(updateUser models.UpdateUserRequest) error {
-	const op = "storage.postgres.Update"
+	const op = "storage.psgr.user.Update"
 
 	row, err := s.db.Exec(`UPDATE "user" SET "username" = $1, "email" = $2, "bio" = $3 WHERE "id" = $5`, updateUser.Username, updateUser.Email, updateUser.Bio, updateUser.ID)
 
@@ -81,7 +81,7 @@ func (s *UserStorage) Update(updateUser models.UpdateUserRequest) error {
 }
 
 func (s *UserStorage) GetAllFollowers(userID int) (*[]models.GetAllFollowersResponse, error) {
-	const op = "storage.postgres.GetAllFollowers"
+	const op = "storage.psgr.user.GetAllFollowers"
 
 	rows, err := s.db.Query(`
 		SELECT DISTINCT u.username, u.profile_pic
@@ -119,7 +119,7 @@ func (s *UserStorage) GetAllFollowers(userID int) (*[]models.GetAllFollowersResp
 }
 
 func (s *UserStorage) GetAllFollowing(userID int) (*[]models.GetAllFollowersResponse, error) {
-	const op = "storage.postgres.GetAllFollowing"
+	const op = "storage.psgr.user.GetAllFollowing"
 
 	rows, err := s.db.Query(`
 		SELECT DISTINCT u.username, u.profile_pic

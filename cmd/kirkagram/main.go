@@ -8,6 +8,7 @@ import (
 	"kirkagram/internal/storage/psgr"
 	S3Storage "kirkagram/internal/storage/s3"
 	"kirkagram/internal/transport/rest"
+	"kirkagram/internal/transport/rest/handlers"
 	"log/slog"
 	"net/http"
 	"os"
@@ -29,11 +30,17 @@ func main() {
 	log.Info("Starting application")
 	log.Info("Current address", slog.String("port", cfg.HttpServe.Address))
 
-	psgrRepo := psgr.NewUserStorage(db)
+	userRepo := psgr.NewUserStorage(db)
+	postRepo := psgr.NewPostStorage(db)
 	s3Repo := S3Storage.NewUserS3Storage(S3Client)
-	userService := service.NewUserService(log, psgrRepo)
+
+	userService := service.NewUserService(log, userRepo)
 	photoService := service.NewPhotoService(s3Repo, log)
-	handler := rest.NewHandler(log, userService, photoService)
+	postService := service.NewPostService(postRepo, log)
+
+	userHandler := handlers.NewUserHandler(userService, log)
+	photoHandler := handlers.NewPhotoHandler(userService, photoService, log)
+	handler := rest.NewHandler(log, userHandler, photoHandler, postService)
 
 	srv := &http.Server{
 		Addr:    cfg.HttpServe.Address,
