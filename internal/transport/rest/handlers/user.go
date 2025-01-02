@@ -5,7 +5,7 @@ import (
 	"errors"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/render"
-	"kirkagram/internal/lib/logger/handlers/customErrors"
+	"kirkagram/internal/lib/logger/handlers/customResponse"
 	"kirkagram/internal/models"
 	"kirkagram/internal/storage"
 	"log/slog"
@@ -49,7 +49,7 @@ func (h *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 			log.Error("Get user by email with error", slog.String("email", id), slog.String("error", err.Error()))
 
 			render.Status(r, http.StatusNotFound)
-			render.JSON(w, r, customErrors.NewError(err.Error()))
+			render.JSON(w, r, customResponse.NewError(err.Error()))
 
 			return
 		}
@@ -57,13 +57,14 @@ func (h *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 		log.Error("Get user by email with error", slog.String("email", id), slog.String("error", err.Error()))
 
 		render.Status(r, http.StatusInternalServerError)
-		render.JSON(w, r, customErrors.NewError(err.Error()))
+		render.JSON(w, r, customResponse.NewError(err.Error()))
 
 		return
 	}
 
 	log.Info("Get user by email completed", slog.String("email", id))
 
+	render.Status(r, http.StatusOK)
 	render.JSON(w, r, user)
 }
 
@@ -80,7 +81,7 @@ func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 		log.Error("Update user with error", slog.String("error", err.Error()))
 
 		render.Status(r, http.StatusBadRequest)
-		render.JSON(w, r, customErrors.NewError(err.Error()))
+		render.JSON(w, r, customResponse.NewError(err.Error()))
 
 		return
 	}
@@ -91,7 +92,7 @@ func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 			log.Error("Update user with error", slog.String("error", err.Error()))
 
 			render.Status(r, http.StatusNotFound)
-			render.JSON(w, r, customErrors.NewError(err.Error()))
+			render.JSON(w, r, customResponse.NewError(err.Error()))
 
 			return
 		}
@@ -99,7 +100,7 @@ func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 		log.Error("Update user with error", slog.String("error", err.Error()))
 
 		render.Status(r, http.StatusInternalServerError)
-		render.JSON(w, r, customErrors.NewError(err.Error()))
+		render.JSON(w, r, customResponse.NewError(err.Error()))
 
 		return
 	}
@@ -107,7 +108,7 @@ func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	log.Info("Update user completed")
 
 	render.Status(r, http.StatusOK)
-	render.JSON(w, r, nil)
+	render.JSON(w, r, customResponse.NewStatus(200))
 }
 
 func (h *UserHandler) GetAllFollowers(w http.ResponseWriter, r *http.Request) {
@@ -123,7 +124,7 @@ func (h *UserHandler) GetAllFollowers(w http.ResponseWriter, r *http.Request) {
 		log.Error("Get all followers with error", slog.String("error", "userID is empty"))
 
 		render.Status(r, http.StatusBadRequest)
-		render.JSON(w, r, customErrors.NewError("userID is empty"))
+		render.JSON(w, r, customResponse.NewError("userID is empty"))
 
 		return
 	}
@@ -133,7 +134,7 @@ func (h *UserHandler) GetAllFollowers(w http.ResponseWriter, r *http.Request) {
 		log.Error("Get all followers with error", slog.String("userID", userID), slog.String("error", err.Error()))
 
 		render.Status(r, http.StatusBadRequest)
-		render.JSON(w, r, customErrors.NewError(err.Error()))
+		render.JSON(w, r, customResponse.NewError(err.Error()))
 
 		return
 	}
@@ -144,7 +145,7 @@ func (h *UserHandler) GetAllFollowers(w http.ResponseWriter, r *http.Request) {
 			log.Error("Get all followers with error", slog.Int("userID", userIDInt), slog.String("error", err.Error()))
 
 			render.Status(r, http.StatusNotFound)
-			render.JSON(w, r, customErrors.NewError(err.Error()))
+			render.JSON(w, r, customResponse.NewError(err.Error()))
 
 			return
 		}
@@ -152,7 +153,7 @@ func (h *UserHandler) GetAllFollowers(w http.ResponseWriter, r *http.Request) {
 		log.Error("Get all followers with error", slog.Int("userID", userIDInt), slog.String("error", err.Error()))
 
 		render.Status(r, http.StatusInternalServerError)
-		render.JSON(w, r, customErrors.NewError(err.Error()))
+		render.JSON(w, r, customResponse.NewError(err.Error()))
 
 		return
 	}
@@ -176,7 +177,7 @@ func (h *UserHandler) GetAllFollowing(w http.ResponseWriter, r *http.Request) {
 		log.Error("Get all following with error", slog.String("error", "userID is empty"))
 
 		render.Status(r, http.StatusBadRequest)
-		render.JSON(w, r, customErrors.NewError("userID is empty"))
+		render.JSON(w, r, customResponse.NewError("userID is empty"))
 
 		return
 	}
@@ -186,7 +187,7 @@ func (h *UserHandler) GetAllFollowing(w http.ResponseWriter, r *http.Request) {
 		log.Error("Get all following with error", slog.String("userID", userID), slog.String("error", err.Error()))
 
 		render.Status(r, http.StatusBadRequest)
-		render.JSON(w, r, customErrors.NewError(err.Error()))
+		render.JSON(w, r, customResponse.NewError(err.Error()))
 
 		return
 	}
@@ -197,7 +198,7 @@ func (h *UserHandler) GetAllFollowing(w http.ResponseWriter, r *http.Request) {
 			log.Error("Get all following with error", slog.Int("userID", userIDInt), slog.String("error", err.Error()))
 
 			render.Status(r, http.StatusNotFound)
-			render.JSON(w, r, customErrors.NewError(err.Error()))
+			render.JSON(w, r, customResponse.NewError(err.Error()))
 
 			return
 		}
@@ -205,7 +206,7 @@ func (h *UserHandler) GetAllFollowing(w http.ResponseWriter, r *http.Request) {
 		log.Error("Get all following with error", slog.Int("userID", userIDInt), slog.String("error", err.Error()))
 
 		render.Status(r, http.StatusInternalServerError)
-		render.JSON(w, r, customErrors.NewError(err.Error()))
+		render.JSON(w, r, customResponse.NewError(err.Error()))
 
 		return
 	}

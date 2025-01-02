@@ -1,4 +1,4 @@
-package customErrors
+package customResponse
 
 type Error struct {
 	Error string `json:"error"`

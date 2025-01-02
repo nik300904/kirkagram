@@ -7,7 +7,7 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/go-chi/render"
 	"io"
-	"kirkagram/internal/lib/logger/handlers/customErrors"
+	"kirkagram/internal/lib/logger/handlers/customResponse"
 	"kirkagram/internal/models"
 	"kirkagram/internal/storage"
 	"log/slog"
@@ -52,7 +52,7 @@ func (p *PostHandler) GetPostByID(w http.ResponseWriter, r *http.Request) {
 		log.Error("error converting id to int", slog.String("op", op))
 
 		render.Status(r, http.StatusBadRequest)
-		render.JSON(w, r, customErrors.NewError(err.Error()))
+		render.JSON(w, r, customResponse.NewError(err.Error()))
 
 		return
 	}
@@ -63,14 +63,14 @@ func (p *PostHandler) GetPostByID(w http.ResponseWriter, r *http.Request) {
 			log.Error("post not found", slog.String("error", err.Error()), slog.String("op", op))
 
 			render.Status(r, http.StatusNotFound)
-			render.JSON(w, r, customErrors.NewError(storage.ErrPostNotFound.Error()))
+			render.JSON(w, r, customResponse.NewError(storage.ErrPostNotFound.Error()))
 
 			return
 		}
 		log.Error("error getting post by id post", slog.String("op", op))
 
 		render.Status(r, http.StatusInternalServerError)
-		render.JSON(w, r, customErrors.NewError(err.Error()))
+		render.JSON(w, r, customResponse.NewError(err.Error()))
 
 		return
 	}
@@ -90,7 +90,7 @@ func (p *PostHandler) CreatePost(w http.ResponseWriter, r *http.Request) {
 		log.Error("Failed to parse multipart form", slog.String("error", err.Error()))
 
 		render.Status(r, http.StatusLengthRequired)
-		render.JSON(w, r, customErrors.NewError(err.Error()))
+		render.JSON(w, r, customResponse.NewError(err.Error()))
 
 		return
 	}
@@ -108,7 +108,7 @@ func (p *PostHandler) CreatePost(w http.ResponseWriter, r *http.Request) {
 		log.Error("Failed to read file", slog.String("error", err.Error()))
 
 		render.Status(r, http.StatusLengthRequired)
-		render.JSON(w, r, customErrors.NewError(err.Error()))
+		render.JSON(w, r, customResponse.NewError(err.Error()))
 
 		return
 	}
@@ -123,7 +123,7 @@ func (p *PostHandler) CreatePost(w http.ResponseWriter, r *http.Request) {
 		log.Error("error converting user id to int", slog.String("error", err.Error()))
 
 		render.Status(r, http.StatusInternalServerError)
-		render.JSON(w, r, customErrors.NewError(err.Error()))
+		render.JSON(w, r, customResponse.NewError(err.Error()))
 
 		return
 	}
@@ -139,7 +139,7 @@ func (p *PostHandler) CreatePost(w http.ResponseWriter, r *http.Request) {
 		log.Error("Unable to create post", slog.String("error", err.Error()))
 
 		render.Status(r, http.StatusInternalServerError)
-		render.JSON(w, r, customErrors.NewError(err.Error()))
+		render.JSON(w, r, customResponse.NewError(err.Error()))
 
 		return
 	}
@@ -149,7 +149,7 @@ func (p *PostHandler) CreatePost(w http.ResponseWriter, r *http.Request) {
 		log.Error("Failed to upload file", slog.String("error", err.Error()))
 
 		render.Status(r, http.StatusInternalServerError)
-		render.JSON(w, r, customErrors.NewError(err.Error()))
+		render.JSON(w, r, customResponse.NewError(err.Error()))
 
 		return
 	}
@@ -157,6 +157,7 @@ func (p *PostHandler) CreatePost(w http.ResponseWriter, r *http.Request) {
 	log.Info("finished creation", slog.String("filename", filename))
 
 	render.Status(r, http.StatusCreated)
+	render.JSON(w, r, customResponse.NewStatus(201))
 }
 
 func (p *PostHandler) GetAllPosts(w http.ResponseWriter, r *http.Request) {
@@ -170,7 +171,7 @@ func (p *PostHandler) GetAllPosts(w http.ResponseWriter, r *http.Request) {
 		log.Error("Failed to get all posts", slog.String("error", err.Error()))
 
 		render.Status(r, http.StatusInternalServerError)
-		render.JSON(w, r, customErrors.NewError(err.Error()))
+		render.JSON(w, r, customResponse.NewError(err.Error()))
 
 		return
 	}
