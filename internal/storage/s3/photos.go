@@ -1,6 +1,7 @@
 package s3
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -40,4 +41,19 @@ func (u *PhotoS3Storage) GetPhoto(key string) ([]byte, error) {
 	defer result.Body.Close()
 
 	return io.ReadAll(result.Body)
+}
+
+func (u *PhotoS3Storage) UploadPhoto(key string, data []byte) error {
+	const op = "storage.s3.UploadPhoto"
+
+	_, err := u.client.PutObject(context.Background(), &s3.PutObjectInput{
+		Bucket: aws.String(bucketName),
+		Key:    aws.String(key),
+		Body:   bytes.NewReader(data),
+	})
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	return nil
 }
