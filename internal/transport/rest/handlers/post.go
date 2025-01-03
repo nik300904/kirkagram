@@ -49,6 +49,16 @@ func (p *PostHandler) DeletePost(w http.ResponseWriter, r *http.Request) {
 	log.Info("starting delete post")
 
 	userID := chi.URLParam(r, "userId")
+
+	if userID == "" {
+		log.Error("userID is empty")
+
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, customResponse.NewError("userID is empty"))
+
+		return
+	}
+
 	num, err := strconv.Atoi(userID)
 	if err != nil {
 		log.Error("error converting id to int")
@@ -89,6 +99,16 @@ func (p *PostHandler) GetUserPosts(w http.ResponseWriter, r *http.Request) {
 	log.Info("starting get user posts")
 
 	userID := chi.URLParam(r, "userId")
+
+	if userID == "" {
+		log.Error("userID is empty")
+
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, customResponse.NewError("userID is empty"))
+
+		return
+	}
+
 	num, err := strconv.Atoi(userID)
 	if err != nil {
 		log.Error("error converting id to int")
@@ -131,6 +151,16 @@ func (p *PostHandler) GetPostByID(w http.ResponseWriter, r *http.Request) {
 	log.Info("starting get post by id post")
 
 	id := chi.URLParam(r, "id")
+
+	if id == "" {
+		log.Error("id is empty")
+
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, customResponse.NewError("id is empty"))
+
+		return
+	}
+
 	num, err := strconv.Atoi(id)
 	if err != nil {
 		log.Error("error converting id to int")

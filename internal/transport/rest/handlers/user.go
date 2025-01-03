@@ -18,6 +18,7 @@ type User interface {
 	Update(ctx context.Context, updateUser models.UpdateUserRequest) error
 	GetAllFollowers(ctx context.Context, userID int) (*[]models.GetAllFollowersResponse, error)
 	UploadProfilePic(userID int, filename string) error
+	DeleteUser(ID int64) error
 }
 
 type UserHandler struct {
@@ -32,21 +33,37 @@ func NewUserHandler(userService User, log *slog.Logger) *UserHandler {
 	}
 }
 
-func (h *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
-	const op = "rest.handlers.user.GetUser"
+func (h *UserHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
+	const op = "rest.handlers.user.DeleteUser"
 
-	log := h.log.With(slog.String("op", op))
-	log.Info("Get user")
+	ID := chi.URLParam(r, "Id")
 
-	ctx := context.Background()
-	id := chi.URLParam(r, "id")
+	log := h.log.With(slog.String("op", op), slog.String("ID", ID))
+	log.Info("start delete user")
 
-	log.Info("Get user by email", slog.String("email", id))
+	if ID == "" {
+		log.Error("id is empty")
 
-	user, err := h.userService.GetByID(ctx, id)
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, customResponse.NewError("id is empty"))
+
+		return
+	}
+
+	num, err := strconv.Atoi(ID)
+	if err != nil {
+		log.Error("id is invalid")
+
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, customResponse.NewError("id must be numeric"))
+
+		return
+	}
+
+	err = h.userService.DeleteUser(int64(num))
 	if err != nil {
 		if errors.Is(err, storage.ErrUserNotFound) {
-			log.Error("Get user by email with error", slog.String("email", id), slog.String("error", err.Error()))
+			log.Error("user not found")
 
 			render.Status(r, http.StatusNotFound)
 			render.JSON(w, r, customResponse.NewError(err.Error()))
@@ -54,7 +71,7 @@ func (h *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		log.Error("Get user by email with error", slog.String("email", id), slog.String("error", err.Error()))
+		log.Error(err.Error())
 
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, customResponse.NewError(err.Error()))
@@ -62,7 +79,50 @@ func (h *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Info("Get user by email completed", slog.String("email", id))
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, customResponse.NewStatus(200))
+}
+
+func (h *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
+	const op = "rest.handlers.user.GetUser"
+
+	log := h.log.With(slog.String("op", op))
+	log.Info("Get user")
+
+	ctx := context.Background()
+	ID := chi.URLParam(r, "id")
+
+	if ID == "" {
+		log.Error("id is empty")
+
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, customResponse.NewError("id is empty"))
+
+		return
+	}
+
+	log.Info("Get user by email", slog.String("id", ID))
+
+	user, err := h.userService.GetByID(ctx, ID)
+	if err != nil {
+		if errors.Is(err, storage.ErrUserNotFound) {
+			log.Error("Get user by email with error", slog.String("id", ID), slog.String("error", err.Error()))
+
+			render.Status(r, http.StatusNotFound)
+			render.JSON(w, r, customResponse.NewError(err.Error()))
+
+			return
+		}
+
+		log.Error("Get user by email with error", slog.String("id", ID), slog.String("error", err.Error()))
+
+		render.Status(r, http.StatusInternalServerError)
+		render.JSON(w, r, customResponse.NewError(err.Error()))
+
+		return
+	}
+
+	log.Info("Get user by email completed", slog.String("id", ID))
 
 	render.Status(r, http.StatusOK)
 	render.JSON(w, r, user)

@@ -17,6 +17,7 @@ type UserService interface {
 	GetAllFollowers(userID int) (*[]models.GetAllFollowersResponse, error)
 	GetAllFollowing(userID int) (*[]models.GetAllFollowersResponse, error)
 	UploadProfilePic(userID int, filename string) error
+	DeleteUser(ID int64) error
 }
 
 type User struct {
@@ -26,6 +27,10 @@ type User struct {
 
 func NewUserService(log *slog.Logger, storage UserService) *User {
 	return &User{storage: storage, log: log}
+}
+
+func (s *User) DeleteUser(ID int64) error {
+	return s.storage.DeleteUser(ID)
 }
 
 func (s *User) UploadProfilePic(userID int, filename string) error {

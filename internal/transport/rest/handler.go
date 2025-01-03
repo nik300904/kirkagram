@@ -44,6 +44,7 @@ func (h *Handler) InitRouter() *chi.Mux {
 		r.Put("/user", h.userHandler.UpdateUser)
 		r.Get("/user/{userID}/followers", h.userHandler.GetAllFollowers)
 		r.Get("/user/{userID}/following", h.userHandler.GetAllFollowing)
+		r.Delete("/user/{Id}", h.userHandler.DeleteUser)
 
 		r.Get("/photo/{key}", h.photoHandler.GetPhotoURL)
 		r.Post("/photo", h.photoHandler.UploadPhoto)

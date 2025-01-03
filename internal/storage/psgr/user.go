@@ -16,6 +16,30 @@ func NewUserStorage(db *sql.DB) *UserStorage {
 	return &UserStorage{db: db}
 }
 
+func (s *UserStorage) DeleteUser(ID int64) error {
+	const op = "storage.psgr.user.DeleteUser"
+
+	exec, err := s.db.Exec(`DELETE FROM "user" WHERE id=$1`, ID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return storage.ErrUserNotFound
+		}
+
+		return fmt.Errorf("%v: %v", op, err)
+	}
+
+	num, err := exec.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("%v: %v", op, err)
+	}
+
+	if num == 0 {
+		return storage.ErrUserNotFound
+	}
+
+	return nil
+}
+
 func (s *UserStorage) UploadProfilePic(userID int, filename string) error {
 	const op = "storage.psgr.user.UploadProfilePic"
 
