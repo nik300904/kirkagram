@@ -25,6 +25,7 @@ type Post interface {
 	GetAllPosts() (*[]models.Posts, error)
 	GetPostByID(ID int64) (*models.Posts, error)
 	GetAllPostsByUserID(userID int64) (*[]models.Posts, error)
+	DeletePost(ID int64) error
 }
 
 type PostHandler struct {
@@ -39,6 +40,46 @@ func NewPostHandler(postService Post, photoService PhotoUpl, log *slog.Logger) *
 		photoService: photoService,
 		log:          log,
 	}
+}
+
+func (p *PostHandler) DeletePost(w http.ResponseWriter, r *http.Request) {
+	const op = "rest.handlers.post.DeletePost"
+
+	log := p.log.With(slog.String("op", op))
+	log.Info("starting delete post")
+
+	userID := chi.URLParam(r, "userId")
+	num, err := strconv.Atoi(userID)
+	if err != nil {
+		log.Error("error converting id to int")
+
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, customResponse.NewError(err.Error()))
+
+		return
+	}
+
+	err = p.postService.DeletePost(int64(num))
+	if err != nil {
+		if errors.Is(err, storage.ErrPostNotFound) {
+			log.Error("error deleting post", slog.String("userID", userID), slog.String("error", err.Error()))
+
+			render.Status(r, http.StatusNotFound)
+			render.JSON(w, r, customResponse.NewError(err.Error()))
+
+			return
+		}
+
+		log.Error("error deleting post", slog.String("userID", userID), slog.String("error", err.Error()))
+
+		render.Status(r, http.StatusInternalServerError)
+		render.JSON(w, r, customResponse.NewError(err.Error()))
+
+		return
+	}
+
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, customResponse.NewStatus(200))
 }
 
 func (p *PostHandler) GetUserPosts(w http.ResponseWriter, r *http.Request) {

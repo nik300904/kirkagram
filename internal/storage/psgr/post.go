@@ -16,6 +16,29 @@ func NewPostStorage(db *sql.DB) *PostStorage {
 	return &PostStorage{db: db}
 }
 
+func (p *PostStorage) DeletePost(ID int64) error {
+	const op = "storage.psgr.post.DeletePost"
+
+	exec, err := p.db.Exec("DELETE FROM post WHERE id=$1", ID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return storage.ErrPostNotFound
+		}
+		return fmt.Errorf("%s: %v", op, err)
+	}
+
+	num, err := exec.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("%s: %v", op, err)
+	}
+
+	if num == 0 {
+		return storage.ErrPostNotFound
+	}
+
+	return nil
+}
+
 func (p *PostStorage) GetAllPostsByUserID(userID int64) (*[]models.Posts, error) {
 	const op = "storage.psgr.post.getAllPostsByUserID"
 
