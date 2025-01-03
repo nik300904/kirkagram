@@ -135,5 +135,14 @@ func (h *PhotoHandler) GetPhotoURL(w http.ResponseWriter, r *http.Request) {
 	log.Info("Get photo URL completed successfully")
 
 	render.Status(r, http.StatusOK)
-	w.Write(photo)
+	_, err = w.Write(photo)
+	if err != nil {
+		log.Error("Failed to write response", slog.String("error", err.Error()))
+
+		render.Status(r, http.StatusInternalServerError)
+		render.JSON(w, r, customResponse.NewError(err.Error()))
+
+		return
+	}
+	render.JSON(w, r, customResponse.NewStatus(200))
 }

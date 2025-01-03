@@ -9,6 +9,7 @@ type PostService interface {
 	CreatePost(post models.CreatePostRequest) error
 	GetAllPosts() (*[]models.Posts, error)
 	GetPostByID(ID int64) (*models.Posts, error)
+	GetAllPostsByUserID(userID int64) (*[]models.Posts, error)
 }
 
 type Post struct {
@@ -21,6 +22,10 @@ func NewPostService(storage PostService, log *slog.Logger) *Post {
 		storage: storage,
 		log:     log,
 	}
+}
+
+func (p *Post) GetAllPostsByUserID(userID int64) (*[]models.Posts, error) {
+	return p.storage.GetAllPostsByUserID(userID)
 }
 
 func (p *Post) CreatePost(post models.CreatePostRequest) error {

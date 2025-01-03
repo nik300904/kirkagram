@@ -16,6 +16,32 @@ func NewPostStorage(db *sql.DB) *PostStorage {
 	return &PostStorage{db: db}
 }
 
+func (p *PostStorage) GetAllPostsByUserID(userID int64) (*[]models.Posts, error) {
+	const op = "storage.psgr.post.getAllPostsByUserID"
+
+	rows, err := p.db.Query("SELECT * FROM post WHERE user_id=$1", userID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, storage.ErrPostNotFound
+		}
+
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	var posts []models.Posts
+	for rows.Next() {
+		var post models.Posts
+		err = rows.Scan(&post.ID, &post.UserID, &post.ImageURL, &post.Caption, &post.CreatedAt, &post.UpdatedAt)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", op, err)
+		}
+
+		posts = append(posts, post)
+	}
+
+	return &posts, nil
+}
+
 func (p *PostStorage) CreatePost(post models.CreatePostRequest) error {
 	const op = "storage.psgr.post.CreatePost"
 

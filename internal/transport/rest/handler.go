@@ -51,6 +51,7 @@ func (h *Handler) InitRouter() *chi.Mux {
 		r.Post("/post", h.postHandler.CreatePost)
 		r.Get("/post/all", h.postHandler.GetAllPosts)
 		r.Get("/post/{id}", h.postHandler.GetPostByID)
+		r.Get("/post/user/{userId}", h.postHandler.GetUserPosts)
 	})
 
 	return router

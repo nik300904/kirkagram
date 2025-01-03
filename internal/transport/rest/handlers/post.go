@@ -24,6 +24,7 @@ type Post interface {
 	CreatePost(post models.CreatePostRequest) error
 	GetAllPosts() (*[]models.Posts, error)
 	GetPostByID(ID int64) (*models.Posts, error)
+	GetAllPostsByUserID(userID int64) (*[]models.Posts, error)
 }
 
 type PostHandler struct {
@@ -40,6 +41,48 @@ func NewPostHandler(postService Post, photoService PhotoUpl, log *slog.Logger) *
 	}
 }
 
+func (p *PostHandler) GetUserPosts(w http.ResponseWriter, r *http.Request) {
+	const op = "rest.handlers.post.GetUserPosts"
+
+	log := p.log.With(slog.String("op", op))
+	log.Info("starting get user posts")
+
+	userID := chi.URLParam(r, "userId")
+	num, err := strconv.Atoi(userID)
+	if err != nil {
+		log.Error("error converting id to int")
+
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, customResponse.NewError(err.Error()))
+
+		return
+	}
+
+	posts, err := p.postService.GetAllPostsByUserID(int64(num))
+	if err != nil {
+		if errors.Is(err, storage.ErrPostNotFound) {
+			log.Error("error getting all posts", slog.String("userId", userID), slog.String("error", err.Error()))
+
+			render.Status(r, http.StatusNotFound)
+			render.JSON(w, r, customResponse.NewError(err.Error()))
+
+			return
+		}
+
+		log.Error("error getting all posts", slog.String("userId", userID), slog.String("error", err.Error()))
+
+		render.Status(r, http.StatusInternalServerError)
+		render.JSON(w, r, customResponse.NewError(err.Error()))
+
+		return
+	}
+
+	log.Info("complete get user posts")
+
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, posts)
+}
+
 func (p *PostHandler) GetPostByID(w http.ResponseWriter, r *http.Request) {
 	const op = "rest.handlers.post.GetPostByID"
 
@@ -49,7 +92,7 @@ func (p *PostHandler) GetPostByID(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	num, err := strconv.Atoi(id)
 	if err != nil {
-		log.Error("error converting id to int", slog.String("op", op))
+		log.Error("error converting id to int")
 
 		render.Status(r, http.StatusBadRequest)
 		render.JSON(w, r, customResponse.NewError(err.Error()))
