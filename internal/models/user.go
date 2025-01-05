@@ -11,6 +11,12 @@ type User struct {
 	Following  []int  `json:"following"`
 }
 
+type CreateUserRequest struct {
+	Username string `json:"username" validate:"required"`
+	Email    string `json:"email" validate:"required,email"`
+	Password string `json:"password" validate:"required"`
+}
+
 type UpdateUserRequest struct {
 	ID       int    `json:"id"`
 	Username string `json:"username,omitempty"`

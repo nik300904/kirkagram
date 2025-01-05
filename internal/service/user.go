@@ -4,11 +4,16 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"golang.org/x/crypto/bcrypt"
 	"kirkagram/internal/models"
 	"kirkagram/internal/storage"
 	"log/slog"
 
 	"github.com/go-playground/validator"
+)
+
+const (
+	ErrEmailValidationFailed = "email validation failed"
 )
 
 type UserService interface {
@@ -18,6 +23,7 @@ type UserService interface {
 	GetAllFollowing(userID int) (*[]models.GetAllFollowersResponse, error)
 	UploadProfilePic(userID int, filename string) error
 	DeleteUser(ID int64) error
+	CreateUser(user *models.CreateUserRequest) error
 }
 
 type User struct {
@@ -27,6 +33,28 @@ type User struct {
 
 func NewUserService(log *slog.Logger, storage UserService) *User {
 	return &User{storage: storage, log: log}
+}
+
+func (s *User) RegisterUser(user models.CreateUserRequest) error {
+	const op = "service.User.RegisterUser"
+
+	err := validator.New().Struct(user)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	passHash, err := hashPassword(user.Password)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	newUser := models.CreateUserRequest{
+		Username: user.Username,
+		Password: passHash,
+		Email:    user.Email,
+	}
+
+	return s.storage.CreateUser(&newUser)
 }
 
 func (s *User) DeleteUser(ID int64) error {
@@ -100,4 +128,14 @@ func (s *User) GetAllFollowing(ctx context.Context, userID int) (*[]models.GetAl
 	}
 
 	return following, nil
+}
+
+func hashPassword(password string) (string, error) {
+	bytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	return string(bytes), err
+}
+
+func checkPasswordHash(password, hash string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+	return err == nil
 }

@@ -19,6 +19,7 @@ type User interface {
 	GetAllFollowers(ctx context.Context, userID int) (*[]models.GetAllFollowersResponse, error)
 	UploadProfilePic(userID int, filename string) error
 	DeleteUser(ID int64) error
+	RegisterUser(user models.CreateUserRequest) error
 }
 
 type UserHandler struct {
@@ -31,6 +32,37 @@ func NewUserHandler(userService User, log *slog.Logger) *UserHandler {
 		userService: userService,
 		log:         log,
 	}
+}
+
+func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
+	const op = "rest.handlers.user.Register"
+
+	log := h.log.With(slog.String("op", op))
+	log.Info("start register user")
+
+	var user models.CreateUserRequest
+	err := render.DecodeJSON(r.Body, &user)
+	if err != nil {
+		log.Error("decode json error", slog.String("error", err.Error()))
+
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, customResponse.NewError(err.Error()))
+
+		return
+	}
+
+	err = h.userService.RegisterUser(user)
+	if err != nil {
+		log.Error("register user error", slog.String("error", err.Error()))
+
+		render.Status(r, http.StatusInternalServerError)
+		render.JSON(w, r, customResponse.NewError(err.Error()))
+
+		return
+	}
+
+	render.Status(r, http.StatusCreated)
+	render.JSON(w, r, customResponse.NewStatus(201))
 }
 
 func (h *UserHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {

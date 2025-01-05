@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"github.com/lib/pq"
 	"kirkagram/internal/models"
 	"kirkagram/internal/storage"
 )
@@ -16,6 +17,37 @@ func NewUserStorage(db *sql.DB) *UserStorage {
 	return &UserStorage{db: db}
 }
 
+func (s *UserStorage) CreateUser(user *models.CreateUserRequest) error {
+	const op = "storage.psgr.user.CreateUser"
+
+	exec, err := s.db.Exec(`INSERT INTO "user" (username, email, password) VALUES ($1, $2, $3)`, user.Username, user.Email, user.Password)
+
+	if err != nil {
+		if err, ok := err.(*pq.Error); ok {
+			switch err.Message {
+			case "duplicate key value violates unique constraint \"user_email_key\"":
+				return storage.ErrEmailAlreadyRegistered
+			case "duplicate key value violates unique constraint \"user_username_key\"":
+				return storage.ErrUsernameAlreadyRegistered
+			}
+		}
+
+		return err
+	}
+
+	num, err := exec.RowsAffected()
+	if err != nil {
+		fmt.Println("%s: %w", op, err)
+		return err
+	}
+
+	if num == 0 {
+		return storage.ErrUserAlreadyExists
+	}
+
+	return nil
+}
+
 func (s *UserStorage) DeleteUser(ID int64) error {
 	const op = "storage.psgr.user.DeleteUser"
 
@@ -25,12 +57,12 @@ func (s *UserStorage) DeleteUser(ID int64) error {
 			return storage.ErrUserNotFound
 		}
 
-		return fmt.Errorf("%v: %v", op, err)
+		return fmt.Errorf("%s: %w", op, err)
 	}
 
 	num, err := exec.RowsAffected()
 	if err != nil {
-		return fmt.Errorf("%v: %v", op, err)
+		return fmt.Errorf("%s: %w", op, err)
 	}
 
 	if num == 0 {

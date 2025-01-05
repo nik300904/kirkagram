@@ -22,12 +22,14 @@ type ConnectionInfo struct {
 }
 
 var (
-	ErrUserNotFound      = errors.New("User not found")
-	ErrEmailExists       = errors.New("Email already exists")
-	ErrIncorrectPassword = errors.New("Incorrect password")
-	ErrNoSuchKey         = errors.New("No such key")
-	ErrPostExists        = errors.New("Post already exists")
-	ErrPostNotFound      = errors.New("Post not found")
+	ErrUserNotFound              = errors.New("User not found")
+	ErrEmailAlreadyRegistered    = errors.New("User with this email already exists")
+	ErrUsernameAlreadyRegistered = errors.New("User with this username already exists")
+	ErrUserAlreadyExists         = errors.New("User already exists")
+	ErrIncorrectPassword         = errors.New("Incorrect password")
+	ErrNoSuchKey                 = errors.New("No such key")
+	ErrPostExists                = errors.New("Post already exists")
+	ErrPostNotFound              = errors.New("Post not found")
 )
 
 func New(cfg *internalConfig.Config) *sql.DB {
