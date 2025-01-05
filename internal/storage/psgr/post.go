@@ -68,9 +68,14 @@ func (p *PostStorage) GetAllPostsByUserID(userID int64) (*[]models.Posts, error)
 func (p *PostStorage) CreatePost(post models.CreatePostRequest) error {
 	const op = "storage.psgr.post.CreatePost"
 
-	exec, err := p.db.Exec(`
+	exec, err := p.db.Exec(
+		`
 		INSERT INTO "post" (user_id, image_url, caption)
-		VALUES ($1, $2, $3)`, post.UserID, post.ImageURL, post.Caption)
+		VALUES ($1, $2, $3)`,
+		post.UserID,
+		post.ImageURL,
+		post.Caption,
+	)
 
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
@@ -120,7 +125,10 @@ func (p *PostStorage) GetPostByID(ID int64) (*models.Posts, error) {
 
 	var post models.Posts
 
-	err := p.db.QueryRow("SELECT * FROM post WHERE id = $1", ID).Scan(&post.ID, &post.UserID, &post.ImageURL, &post.Caption, &post.CreatedAt, &post.UpdatedAt)
+	err := p.db.QueryRow(
+		"SELECT * FROM post WHERE id = $1",
+		ID,
+	).Scan(&post.ID, &post.UserID, &post.ImageURL, &post.Caption, &post.CreatedAt, &post.UpdatedAt)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, storage.ErrPostNotFound

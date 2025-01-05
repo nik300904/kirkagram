@@ -20,7 +20,12 @@ func NewUserStorage(db *sql.DB) *UserStorage {
 func (s *UserStorage) CreateUser(user *models.CreateUserRequest) error {
 	const op = "storage.psgr.user.CreateUser"
 
-	exec, err := s.db.Exec(`INSERT INTO "user" (username, email, password) VALUES ($1, $2, $3)`, user.Username, user.Email, user.Password)
+	exec, err := s.db.Exec(
+		`INSERT INTO "user" (username, email, password) VALUES ($1, $2, $3)`,
+		user.Username,
+		user.Email,
+		user.Password,
+	)
 
 	if err != nil {
 		if err, ok := err.(*pq.Error); ok {
@@ -51,7 +56,10 @@ func (s *UserStorage) CreateUser(user *models.CreateUserRequest) error {
 func (s *UserStorage) DeleteUser(ID int64) error {
 	const op = "storage.psgr.user.DeleteUser"
 
-	exec, err := s.db.Exec(`DELETE FROM "user" WHERE id=$1`, ID)
+	exec, err := s.db.Exec(
+		`DELETE FROM "user" WHERE id=$1`,
+		ID,
+	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return storage.ErrUserNotFound
@@ -77,7 +85,11 @@ func (s *UserStorage) UploadProfilePic(userID int, filename string) error {
 
 	profilePic := fmt.Sprintf("api/photo/%v", filename)
 
-	exec, err := s.db.Exec(`UPDATE "user" SET "profile_pic" = $1 WHERE "id" = $2`, profilePic, userID)
+	exec, err := s.db.Exec(
+		`UPDATE "user" SET "profile_pic" = $1 WHERE "id" = $2`,
+		profilePic,
+		userID,
+	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return fmt.Errorf("%s: %w", op, storage.ErrUserNotFound)
@@ -102,7 +114,10 @@ func (s *UserStorage) GetByID(ID string) (*models.GetUserResponse, error) {
 
 	var user models.GetUserResponse
 
-	row := s.db.QueryRow(`SELECT "id", "email", "username", "bio", "profile_pic" FROM "user" WHERE "id" = $1`, ID).Scan(&user.ID, &user.Email, &user.Username, &user.Bio, &user.ProfilePic)
+	row := s.db.QueryRow(
+		`SELECT "id", "email", "username", "bio", "profile_pic" FROM "user" WHERE "id" = $1`,
+		ID,
+	).Scan(&user.ID, &user.Email, &user.Username, &user.Bio, &user.ProfilePic)
 
 	if row != nil {
 		if errors.Is(row, sql.ErrNoRows) {
@@ -118,7 +133,13 @@ func (s *UserStorage) GetByID(ID string) (*models.GetUserResponse, error) {
 func (s *UserStorage) Update(updateUser models.UpdateUserRequest) error {
 	const op = "storage.psgr.user.Update"
 
-	row, err := s.db.Exec(`UPDATE "user" SET "username" = $1, "email" = $2, "bio" = $3 WHERE "id" = $5`, updateUser.Username, updateUser.Email, updateUser.Bio, updateUser.ID)
+	row, err := s.db.Exec(
+		`UPDATE "user" SET "username" = $1, "email" = $2, "bio" = $3 WHERE "id" = $5`,
+		updateUser.Username,
+		updateUser.Email,
+		updateUser.Bio,
+		updateUser.ID,
+	)
 
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
@@ -139,13 +160,16 @@ func (s *UserStorage) Update(updateUser models.UpdateUserRequest) error {
 func (s *UserStorage) GetAllFollowers(userID int) (*[]models.GetAllFollowersResponse, error) {
 	const op = "storage.psgr.user.GetAllFollowers"
 
-	rows, err := s.db.Query(`
+	rows, err := s.db.Query(
+		`
 		SELECT DISTINCT u.username, u.profile_pic
 		FROM "user" main_user
 		CROSS JOIN LATERAL unnest(main_user.followers) AS follower_id
 		JOIN "user" u ON u.id = follower_id
 		WHERE main_user.id = $1;
-	`, userID)
+	`,
+		userID,
+	)
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -177,13 +201,16 @@ func (s *UserStorage) GetAllFollowers(userID int) (*[]models.GetAllFollowersResp
 func (s *UserStorage) GetAllFollowing(userID int) (*[]models.GetAllFollowersResponse, error) {
 	const op = "storage.psgr.user.GetAllFollowing"
 
-	rows, err := s.db.Query(`
+	rows, err := s.db.Query(
+		`
 		SELECT DISTINCT u.username, u.profile_pic
 		FROM "user" main_user
 		CROSS JOIN LATERAL unnest(main_user.followers) AS follower_id
 		JOIN "user" u ON u.id = follower_id
 		WHERE main_user.id = $1;
-	`, userID)
+		`,
+		userID,
+	)
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
