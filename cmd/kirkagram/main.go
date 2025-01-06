@@ -32,17 +32,20 @@ func main() {
 
 	userRepo := psgr.NewUserStorage(db)
 	postRepo := psgr.NewPostStorage(db)
+	likeRepo := psgr.NewLikeStorage(db)
 	s3Repo := S3Storage.NewUserS3Storage(S3Client)
 
 	userService := service.NewUserService(log, userRepo)
-	photoService := service.NewPhotoService(s3Repo, log)
 	postService := service.NewPostService(postRepo, log)
+	likeService := service.NewLikeService(likeRepo, log)
+	photoService := service.NewPhotoService(s3Repo, log)
 
 	userHandler := handlers.NewUserHandler(userService, log)
 	photoHandler := handlers.NewPhotoHandler(userService, photoService, log)
 	postHandler := handlers.NewPostHandler(postService, photoService, log)
+	LikeHandler := handlers.NewLikeHandler(likeService, log)
 
-	handler := rest.NewHandler(log, userHandler, photoHandler, postHandler)
+	handler := rest.NewHandler(log, userHandler, photoHandler, postHandler, LikeHandler)
 
 	srv := &http.Server{
 		Addr:    cfg.HttpServe.Address,

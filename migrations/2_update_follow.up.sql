@@ -1,4 +1,6 @@
-ALTER TABLE "user"
+ALTER TABLE "user" RENAME TO users;
+
+ALTER TABLE "users"
     DROP COLUMN IF EXISTS followers,
     DROP COLUMN IF EXISTS following;
 

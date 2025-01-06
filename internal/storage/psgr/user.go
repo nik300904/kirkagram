@@ -21,14 +21,15 @@ func (s *UserStorage) CreateUser(user *models.CreateUserRequest) error {
 	const op = "storage.psgr.user.CreateUser"
 
 	exec, err := s.db.Exec(
-		`INSERT INTO "user" (username, email, password) VALUES ($1, $2, $3)`,
+		`INSERT INTO "users" (username, email, password) VALUES ($1, $2, $3)`,
 		user.Username,
 		user.Email,
 		user.Password,
 	)
 
 	if err != nil {
-		if err, ok := err.(*pq.Error); ok {
+		var err *pq.Error
+		if errors.As(err, &err) {
 			switch err.Message {
 			case "duplicate key value violates unique constraint \"user_email_key\"":
 				return storage.ErrEmailAlreadyRegistered
@@ -37,13 +38,12 @@ func (s *UserStorage) CreateUser(user *models.CreateUserRequest) error {
 			}
 		}
 
-		return err
+		return fmt.Errorf("%s: %w", op, err)
 	}
 
 	num, err := exec.RowsAffected()
 	if err != nil {
-		fmt.Println("%s: %w", op, err)
-		return err
+		return fmt.Errorf("%s: %w", op, err)
 	}
 
 	if num == 0 {
@@ -57,7 +57,7 @@ func (s *UserStorage) DeleteUser(ID int64) error {
 	const op = "storage.psgr.user.DeleteUser"
 
 	exec, err := s.db.Exec(
-		`DELETE FROM "user" WHERE id=$1`,
+		`DELETE FROM "users" WHERE id=$1`,
 		ID,
 	)
 	if err != nil {
@@ -86,7 +86,7 @@ func (s *UserStorage) UploadProfilePic(userID int, filename string) error {
 	profilePic := fmt.Sprintf("api/photo/%v", filename)
 
 	exec, err := s.db.Exec(
-		`UPDATE "user" SET "profile_pic" = $1 WHERE "id" = $2`,
+		`UPDATE "users" SET "profile_pic" = $1 WHERE "id" = $2`,
 		profilePic,
 		userID,
 	)
@@ -115,7 +115,7 @@ func (s *UserStorage) GetByID(ID string) (*models.GetUserResponse, error) {
 	var user models.GetUserResponse
 
 	row := s.db.QueryRow(
-		`SELECT "id", "email", "username", "bio", "profile_pic" FROM "user" WHERE "id" = $1`,
+		`SELECT "id", "email", "username", "bio", "profile_pic" FROM "users" WHERE "id" = $1`,
 		ID,
 	).Scan(&user.ID, &user.Email, &user.Username, &user.Bio, &user.ProfilePic)
 
@@ -134,7 +134,7 @@ func (s *UserStorage) Update(updateUser models.UpdateUserRequest) error {
 	const op = "storage.psgr.user.Update"
 
 	row, err := s.db.Exec(
-		`UPDATE "user" SET "username" = $1, "email" = $2, "bio" = $3 WHERE "id" = $5`,
+		`UPDATE "users" SET "username" = $1, "email" = $2, "bio" = $3 WHERE "id" = $5`,
 		updateUser.Username,
 		updateUser.Email,
 		updateUser.Bio,
@@ -162,11 +162,10 @@ func (s *UserStorage) GetAllFollowers(userID int) (*[]models.GetAllFollowersResp
 
 	rows, err := s.db.Query(
 		`
-		SELECT DISTINCT u.username, u.profile_pic
-		FROM "user" main_user
-		CROSS JOIN LATERAL unnest(main_user.followers) AS follower_id
-		JOIN "user" u ON u.id = follower_id
-		WHERE main_user.id = $1;
+		SELECT u.username, u.profile_pic
+		FROM users u
+		JOIN follow as f ON u.id = f.follower_id
+		WHERE f.following_id = $1
 	`,
 		userID,
 	)
@@ -180,6 +179,18 @@ func (s *UserStorage) GetAllFollowers(userID int) (*[]models.GetAllFollowersResp
 	}
 
 	var followers []models.GetAllFollowersResponse
+
+	if !rows.Next() {
+		return &[]models.GetAllFollowersResponse{}, nil
+	} else {
+		var follower models.GetAllFollowersResponse
+
+		if err := rows.Scan(&follower.Username, &follower.ProfilePic); err != nil {
+			return nil, fmt.Errorf("%s: %w", op, err)
+		}
+
+		followers = append(followers, follower)
+	}
 
 	for rows.Next() {
 		var follower models.GetAllFollowersResponse
@@ -201,16 +212,12 @@ func (s *UserStorage) GetAllFollowers(userID int) (*[]models.GetAllFollowersResp
 func (s *UserStorage) GetAllFollowing(userID int) (*[]models.GetAllFollowersResponse, error) {
 	const op = "storage.psgr.user.GetAllFollowing"
 
-	rows, err := s.db.Query(
-		`
-		SELECT DISTINCT u.username, u.profile_pic
-		FROM "user" main_user
-		CROSS JOIN LATERAL unnest(main_user.followers) AS follower_id
-		JOIN "user" u ON u.id = follower_id
-		WHERE main_user.id = $1;
-		`,
-		userID,
-	)
+	rows, err := s.db.Query(`
+		SELECT u.username, u.profile_pic
+		FROM users u
+		JOIN follow as f ON u.id = f.following_id
+		WHERE f.follower_id = $1
+		`, userID)
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -221,6 +228,18 @@ func (s *UserStorage) GetAllFollowing(userID int) (*[]models.GetAllFollowersResp
 	}
 
 	var followers []models.GetAllFollowersResponse
+
+	if !rows.Next() {
+		return &[]models.GetAllFollowersResponse{}, nil
+	} else {
+		var follower models.GetAllFollowersResponse
+
+		if err := rows.Scan(&follower.Username, &follower.ProfilePic); err != nil {
+			return nil, fmt.Errorf("%s: %w", op, err)
+		}
+
+		followers = append(followers, follower)
+	}
 
 	for rows.Next() {
 		var follower models.GetAllFollowersResponse

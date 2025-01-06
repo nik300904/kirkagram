@@ -17,6 +17,7 @@ type User interface {
 	GetByID(ctx context.Context, ID string) (*models.GetUserResponse, error)
 	Update(ctx context.Context, updateUser models.UpdateUserRequest) error
 	GetAllFollowers(ctx context.Context, userID int) (*[]models.GetAllFollowersResponse, error)
+	GetAllFollowing(ctx context.Context, userID int) (*[]models.GetAllFollowersResponse, error)
 	UploadProfilePic(userID int, filename string) error
 	DeleteUser(ID int64) error
 	RegisterUser(user models.CreateUserRequest) error
@@ -284,7 +285,7 @@ func (h *UserHandler) GetAllFollowing(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	followers, err := h.userService.GetAllFollowers(ctx, userIDInt)
+	followers, err := h.userService.GetAllFollowing(ctx, userIDInt)
 	if err != nil {
 		if errors.Is(err, storage.ErrUserNotFound) {
 			log.Error("Get all following with error", slog.Int("userID", userIDInt), slog.String("error", err.Error()))

@@ -22,11 +22,24 @@ type Handler struct {
 	userHandler  *handlers.UserHandler
 	photoHandler *handlers.PhotoHandler
 	postHandler  *handlers.PostHandler
+	likeHandler  *handlers.LikeHandler
 	log          *slog.Logger
 }
 
-func NewHandler(log *slog.Logger, userHandler *handlers.UserHandler, photoHandler *handlers.PhotoHandler, postHandler *handlers.PostHandler) *Handler {
-	return &Handler{userHandler: userHandler, photoHandler: photoHandler, postHandler: postHandler, log: log}
+func NewHandler(
+	log *slog.Logger,
+	userHandler *handlers.UserHandler,
+	photoHandler *handlers.PhotoHandler,
+	postHandler *handlers.PostHandler,
+	likeHandler *handlers.LikeHandler,
+) *Handler {
+	return &Handler{
+		userHandler:  userHandler,
+		photoHandler: photoHandler,
+		postHandler:  postHandler,
+		likeHandler:  likeHandler,
+		log:          log,
+	}
 }
 
 func (h *Handler) InitRouter() *chi.Mux {
@@ -55,6 +68,8 @@ func (h *Handler) InitRouter() *chi.Mux {
 		r.Get("/post/{id}", h.postHandler.GetPostByID)
 		r.Get("/post/user/{userId}", h.postHandler.GetUserPosts)
 		r.Delete("/post/{userId}", h.postHandler.DeletePost)
+
+		r.Post("/like", h.likeHandler.LikePost)
 	})
 
 	return router

@@ -30,6 +30,7 @@ var (
 	ErrNoSuchKey                 = errors.New("No such key")
 	ErrPostExists                = errors.New("Post already exists")
 	ErrPostNotFound              = errors.New("Post not found")
+	ErrPostAlreadyLiked          = errors.New("Post already liked")
 )
 
 func New(cfg *internalConfig.Config) *sql.DB {

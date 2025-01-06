@@ -1,5 +1,7 @@
 package models
 
+import "database/sql"
+
 type User struct {
 	ID         int    `json:"id"`
 	Username   string `json:"username"`
@@ -7,8 +9,6 @@ type User struct {
 	Password   string `json:"password"`
 	Bio        string `json:"bio"`
 	ProfilePic string `json:"profile_pic"`
-	Followers  []int  `json:"followers"`
-	Following  []int  `json:"following"`
 }
 
 type CreateUserRequest struct {
@@ -34,6 +34,11 @@ type GetUserResponse struct {
 
 type GetUserValidate struct {
 	Email string `validate:"required,email"`
+}
+
+type GetAllFollowersResponseDB struct {
+	Username   string         `json:"username"`
+	ProfilePic sql.NullString `json:"profile_pic"`
 }
 
 type GetAllFollowersResponse struct {
