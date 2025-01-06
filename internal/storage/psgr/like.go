@@ -17,6 +17,26 @@ func NewLikeStorage(db *sql.DB) *LikeStorage {
 	return &LikeStorage{db: db}
 }
 
+func (l *LikeStorage) GetLikesByID(postID int) (models.LikeResponse, error) {
+	const op = "storage.psgr.like.GetLikesByID"
+
+	var count int
+
+	err := l.db.QueryRow(
+		`SELECT COUNT(*) FROM "like" WHERE post_id = $1;`,
+		postID,
+	).Scan(&count)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return models.LikeResponse{Count: 0}, storage.ErrLikeNotFound
+		}
+
+		return models.LikeResponse{Count: 0}, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return models.LikeResponse{Count: count}, nil
+}
+
 func (l *LikeStorage) UnlikePostByID(likeReq *models.LikeRequest) error {
 	const op = "storage.psgr.like.LikePostByID"
 

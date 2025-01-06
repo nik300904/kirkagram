@@ -1,16 +1,19 @@
 package handlers
 
 import (
+	"github.com/go-chi/chi"
 	"github.com/go-chi/render"
 	"kirkagram/internal/lib/logger/handlers/customResponse"
 	"kirkagram/internal/models"
 	"log/slog"
 	"net/http"
+	"strconv"
 )
 
 type Like interface {
 	LikePostByID(likeReq *models.LikeRequest) error
 	UnlikePostByID(likeReq *models.LikeRequest) error
+	GetLikesByID(postID int) (models.LikeResponse, error)
 }
 
 type LikeHandler struct {
@@ -23,6 +26,46 @@ func NewLikeHandler(likeService Like, log *slog.Logger) *LikeHandler {
 		likeService: likeService,
 		log:         log,
 	}
+}
+
+func (l *LikeHandler) GetLikes(w http.ResponseWriter, r *http.Request) {
+	const op = "rest.handlers.like.LikePost"
+
+	log := l.log.With(slog.String("op", op))
+	log.Info("starting delete post")
+
+	postID := chi.URLParam(r, "postID")
+	if postID == "" {
+		log.Error("postID is required")
+
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, customResponse.NewError("postID empty"))
+
+		return
+	}
+
+	postIDInt, err := strconv.Atoi(postID)
+	if err != nil {
+		log.Error("invalid postID", slog.String("postID", postID))
+
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, customResponse.NewError("postID must be numeric"))
+
+		return
+	}
+
+	count, err := l.likeService.GetLikesByID(postIDInt)
+	if err != nil {
+		log.Error("error getting likes by postID", slog.String("postID", postID), slog.String("error", err.Error()))
+
+		render.Status(r, http.StatusInternalServerError)
+		render.JSON(w, r, customResponse.NewError(err.Error()))
+
+		return
+	}
+
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, count)
 }
 
 func (l *LikeHandler) UnlikePost(w http.ResponseWriter, r *http.Request) {

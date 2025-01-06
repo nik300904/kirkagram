@@ -71,6 +71,7 @@ func (h *Handler) InitRouter() *chi.Mux {
 
 		r.Post("/like", h.likeHandler.LikePost)
 		r.Delete("/like", h.likeHandler.UnlikePost)
+		r.Get("/like/{postID}", h.likeHandler.GetLikes)
 	})
 
 	return router

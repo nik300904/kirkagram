@@ -8,6 +8,7 @@ import (
 type LikeService interface {
 	LikePostByID(likeReq *models.LikeRequest) error
 	UnlikePostByID(likeReq *models.LikeRequest) error
+	GetLikesByID(postID int) (models.LikeResponse, error)
 }
 
 type Like struct {
@@ -24,6 +25,10 @@ func NewLikeService(client LikeService, log *slog.Logger) *Like {
 
 func (l *Like) UnlikePostByID(likeReq *models.LikeRequest) error {
 	return l.client.UnlikePostByID(likeReq)
+}
+
+func (l *Like) GetLikesByID(postID int) (models.LikeResponse, error) {
+	return l.client.GetLikesByID(postID)
 }
 
 func (l *Like) LikePostByID(likeReq *models.LikeRequest) error {

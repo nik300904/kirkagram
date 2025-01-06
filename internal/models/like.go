@@ -13,3 +13,7 @@ type LikeRequest struct {
 	UserID int `json:"user_id"`
 	PostID int `json:"post_id"`
 }
+
+type LikeResponse struct {
+	Count int `json:"count"`
+}
