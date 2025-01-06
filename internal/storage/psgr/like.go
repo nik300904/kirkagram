@@ -17,6 +17,33 @@ func NewLikeStorage(db *sql.DB) *LikeStorage {
 	return &LikeStorage{db: db}
 }
 
+func (l *LikeStorage) UnlikePostByID(likeReq *models.LikeRequest) error {
+	const op = "storage.psgr.like.LikePostByID"
+
+	exec, err := l.db.Exec(
+		`DELETE FROM "like" WHERE user_id = $1 AND post_id = $2`,
+		likeReq.UserID,
+		likeReq.PostID,
+	)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return storage.ErrLikeNotFound
+		}
+
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	num, err := exec.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+	if num == 0 {
+		return fmt.Errorf("%s: %w", op, storage.ErrLikeNotFound)
+	}
+
+	return nil
+}
+
 func (l *LikeStorage) LikePostByID(likeReq *models.LikeRequest) error {
 	const op = "storage.psgr.like.LikePostByID"
 

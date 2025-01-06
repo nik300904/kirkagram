@@ -31,6 +31,7 @@ var (
 	ErrPostExists                = errors.New("Post already exists")
 	ErrPostNotFound              = errors.New("Post not found")
 	ErrPostAlreadyLiked          = errors.New("Post already liked")
+	ErrLikeNotFound              = errors.New("Like not found")
 )
 
 func New(cfg *internalConfig.Config) *sql.DB {
