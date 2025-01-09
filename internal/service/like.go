@@ -1,6 +1,9 @@
 package service
 
 import (
+	"encoding/json"
+	"fmt"
+	k "kirkagram/internal/kafka"
 	"kirkagram/internal/models"
 	"log/slog"
 )
@@ -12,14 +15,16 @@ type LikeService interface {
 }
 
 type Like struct {
-	client LikeService
-	log    *slog.Logger
+	client   LikeService
+	producer k.Producer
+	log      *slog.Logger
 }
 
-func NewLikeService(client LikeService, log *slog.Logger) *Like {
+func NewLikeService(client LikeService, producer k.Producer, log *slog.Logger) *Like {
 	return &Like{
-		client: client,
-		log:    log,
+		client:   client,
+		producer: producer,
+		log:      log,
 	}
 }
 
@@ -32,5 +37,18 @@ func (l *Like) GetLikesByID(postID int) (models.LikeResponse, error) {
 }
 
 func (l *Like) LikePostByID(likeReq *models.LikeRequest) error {
+	const op = "service.LikePostByID"
+	topic := "like"
+
+	likeReqSlc, err := json.Marshal(likeReq)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	err = l.producer.Produce(likeReqSlc, &topic)
+	if err != nil {
+		return err
+	}
+
 	return l.client.LikePostByID(likeReq)
 }

@@ -4,3 +4,7 @@ http_serve:
   address: "8082"
   timeout: 4s
   idle_timeout: 60s
+kafka:
+  address: "localhost:29092"
+  topic_like: "like"
+  topic_post: "post"

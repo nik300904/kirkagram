@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/render"
 	"kirkagram/internal/lib/logger/handlers/customResponse"
@@ -59,7 +60,8 @@ func (l *LikeHandler) GetLikes(w http.ResponseWriter, r *http.Request) {
 		log.Error("error getting likes by postID", slog.String("postID", postID), slog.String("error", err.Error()))
 
 		render.Status(r, http.StatusInternalServerError)
-		render.JSON(w, r, customResponse.NewError(err.Error()))
+		originalErr := errors.Unwrap(err)
+		render.JSON(w, r, customResponse.NewError(originalErr.Error()))
 
 		return
 	}
@@ -80,7 +82,8 @@ func (l *LikeHandler) UnlikePost(w http.ResponseWriter, r *http.Request) {
 		log.Error("unable to decode body", slog.String("error", err.Error()))
 
 		render.Status(r, http.StatusBadRequest)
-		render.JSON(w, r, customResponse.NewError(err.Error()))
+		originalErr := errors.Unwrap(err)
+		render.JSON(w, r, customResponse.NewError(originalErr.Error()))
 
 		return
 	}
@@ -90,7 +93,8 @@ func (l *LikeHandler) UnlikePost(w http.ResponseWriter, r *http.Request) {
 		log.Error("unable to like post", slog.String("error", err.Error()))
 
 		render.Status(r, http.StatusInternalServerError)
-		render.JSON(w, r, customResponse.NewError(err.Error()))
+		originalErr := errors.Unwrap(err)
+		render.JSON(w, r, customResponse.NewError(originalErr.Error()))
 
 		return
 	}
@@ -111,7 +115,8 @@ func (l *LikeHandler) LikePost(w http.ResponseWriter, r *http.Request) {
 		log.Error("unable to decode body", slog.String("error", err.Error()))
 
 		render.Status(r, http.StatusBadRequest)
-		render.JSON(w, r, customResponse.NewError(err.Error()))
+		originalErr := errors.Unwrap(err)
+		render.JSON(w, r, customResponse.NewError(originalErr.Error()))
 
 		return
 	}
@@ -121,7 +126,8 @@ func (l *LikeHandler) LikePost(w http.ResponseWriter, r *http.Request) {
 		log.Error("unable to like post", slog.String("error", err.Error()))
 
 		render.Status(r, http.StatusInternalServerError)
-		render.JSON(w, r, customResponse.NewError(err.Error()))
+		originalErr := errors.Unwrap(err)
+		render.JSON(w, r, customResponse.NewError(originalErr.Error()))
 
 		return
 	}

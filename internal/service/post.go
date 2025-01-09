@@ -1,6 +1,9 @@
 package service
 
 import (
+	"encoding/json"
+	"fmt"
+	k "kirkagram/internal/kafka"
 	"kirkagram/internal/models"
 	"log/slog"
 )
@@ -14,14 +17,16 @@ type PostService interface {
 }
 
 type Post struct {
-	storage PostService
-	log     *slog.Logger
+	storage  PostService
+	producer k.Producer
+	log      *slog.Logger
 }
 
-func NewPostService(storage PostService, log *slog.Logger) *Post {
+func NewPostService(storage PostService, producer k.Producer, log *slog.Logger) *Post {
 	return &Post{
-		storage: storage,
-		log:     log,
+		storage:  storage,
+		producer: producer,
+		log:      log,
 	}
 }
 
@@ -34,6 +39,19 @@ func (p *Post) GetAllPostsByUserID(userID int64) (*[]models.Posts, error) {
 }
 
 func (p *Post) CreatePost(post models.CreatePostRequest) error {
+	const op = "service.CreatePost"
+	topic := "post"
+
+	postSlc, err := json.Marshal(post)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	err = p.producer.Produce(postSlc, &topic)
+	if err != nil {
+		return err
+	}
+
 	return p.storage.CreatePost(post)
 }
 

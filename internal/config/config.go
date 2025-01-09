@@ -11,6 +11,13 @@ type Config struct {
 	Env         string    `yaml:"env" env-required:"true"`
 	StoragePath string    `yaml:"storage_path" env-required:"true"`
 	HttpServe   HttpServe `yaml:"http_serve" env-required:"true"`
+	Kafka       Kafka     `yaml:"kafka" env-required:"true"`
+}
+
+type Kafka struct {
+	Address   string `yaml:"address"`
+	TopicLike string `yaml:"topic_like"`
+	TopicPost string `yaml:"topic_post"`
 }
 
 type HttpServe struct {

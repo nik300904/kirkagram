@@ -2,6 +2,7 @@ package main
 
 import (
 	"kirkagram/internal/config"
+	k "kirkagram/internal/kafka"
 	"kirkagram/internal/lib/logger/handlers/slogpretty"
 	"kirkagram/internal/service"
 	"kirkagram/internal/storage"
@@ -34,10 +35,11 @@ func main() {
 	postRepo := psgr.NewPostStorage(db)
 	likeRepo := psgr.NewLikeStorage(db)
 	s3Repo := S3Storage.NewUserS3Storage(S3Client)
+	producer := k.NewProducer(*cfg, log)
 
 	userService := service.NewUserService(log, userRepo)
-	postService := service.NewPostService(postRepo, log)
-	likeService := service.NewLikeService(likeRepo, log)
+	postService := service.NewPostService(postRepo, *producer, log)
+	likeService := service.NewLikeService(likeRepo, *producer, log)
 	photoService := service.NewPhotoService(s3Repo, log)
 
 	userHandler := handlers.NewUserHandler(userService, log)

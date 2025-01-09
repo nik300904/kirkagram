@@ -47,7 +47,8 @@ func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 		log.Error("decode json error", slog.String("error", err.Error()))
 
 		render.Status(r, http.StatusBadRequest)
-		render.JSON(w, r, customResponse.NewError(err.Error()))
+		originalErr := errors.Unwrap(err)
+		render.JSON(w, r, customResponse.NewError(originalErr.Error()))
 
 		return
 	}
@@ -57,7 +58,8 @@ func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 		log.Error("register user error", slog.String("error", err.Error()))
 
 		render.Status(r, http.StatusInternalServerError)
-		render.JSON(w, r, customResponse.NewError(err.Error()))
+		originalErr := errors.Unwrap(err)
+		render.JSON(w, r, customResponse.NewError(originalErr.Error()))
 
 		return
 	}
@@ -99,7 +101,8 @@ func (h *UserHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 			log.Error("user not found")
 
 			render.Status(r, http.StatusNotFound)
-			render.JSON(w, r, customResponse.NewError(err.Error()))
+			originalErr := errors.Unwrap(err)
+			render.JSON(w, r, customResponse.NewError(originalErr.Error()))
 
 			return
 		}
@@ -142,7 +145,8 @@ func (h *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 			log.Error("Get user by email with error", slog.String("id", ID), slog.String("error", err.Error()))
 
 			render.Status(r, http.StatusNotFound)
-			render.JSON(w, r, customResponse.NewError(err.Error()))
+			originalErr := errors.Unwrap(err)
+			render.JSON(w, r, customResponse.NewError(originalErr.Error()))
 
 			return
 		}
@@ -150,7 +154,8 @@ func (h *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 		log.Error("Get user by email with error", slog.String("id", ID), slog.String("error", err.Error()))
 
 		render.Status(r, http.StatusInternalServerError)
-		render.JSON(w, r, customResponse.NewError(err.Error()))
+		originalErr := errors.Unwrap(err)
+		render.JSON(w, r, customResponse.NewError(originalErr.Error()))
 
 		return
 	}
@@ -174,7 +179,8 @@ func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 		log.Error("Update user with error", slog.String("error", err.Error()))
 
 		render.Status(r, http.StatusBadRequest)
-		render.JSON(w, r, customResponse.NewError(err.Error()))
+		originalErr := errors.Unwrap(err)
+		render.JSON(w, r, customResponse.NewError(originalErr.Error()))
 
 		return
 	}
@@ -185,7 +191,8 @@ func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 			log.Error("Update user with error", slog.String("error", err.Error()))
 
 			render.Status(r, http.StatusNotFound)
-			render.JSON(w, r, customResponse.NewError(err.Error()))
+			originalErr := errors.Unwrap(err)
+			render.JSON(w, r, customResponse.NewError(originalErr.Error()))
 
 			return
 		}
@@ -193,7 +200,8 @@ func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 		log.Error("Update user with error", slog.String("error", err.Error()))
 
 		render.Status(r, http.StatusInternalServerError)
-		render.JSON(w, r, customResponse.NewError(err.Error()))
+		originalErr := errors.Unwrap(err)
+		render.JSON(w, r, customResponse.NewError(originalErr.Error()))
 
 		return
 	}
@@ -227,7 +235,8 @@ func (h *UserHandler) GetAllFollowers(w http.ResponseWriter, r *http.Request) {
 		log.Error("Get all followers with error", slog.String("userID", userID), slog.String("error", err.Error()))
 
 		render.Status(r, http.StatusBadRequest)
-		render.JSON(w, r, customResponse.NewError(err.Error()))
+		originalErr := errors.Unwrap(err)
+		render.JSON(w, r, customResponse.NewError(originalErr.Error()))
 
 		return
 	}
@@ -238,7 +247,8 @@ func (h *UserHandler) GetAllFollowers(w http.ResponseWriter, r *http.Request) {
 			log.Error("Get all followers with error", slog.Int("userID", userIDInt), slog.String("error", err.Error()))
 
 			render.Status(r, http.StatusNotFound)
-			render.JSON(w, r, customResponse.NewError(err.Error()))
+			originalErr := errors.Unwrap(err)
+			render.JSON(w, r, customResponse.NewError(originalErr.Error()))
 
 			return
 		}
@@ -246,7 +256,8 @@ func (h *UserHandler) GetAllFollowers(w http.ResponseWriter, r *http.Request) {
 		log.Error("Get all followers with error", slog.Int("userID", userIDInt), slog.String("error", err.Error()))
 
 		render.Status(r, http.StatusInternalServerError)
-		render.JSON(w, r, customResponse.NewError(err.Error()))
+		originalErr := errors.Unwrap(err)
+		render.JSON(w, r, customResponse.NewError(originalErr.Error()))
 
 		return
 	}
@@ -280,7 +291,8 @@ func (h *UserHandler) GetAllFollowing(w http.ResponseWriter, r *http.Request) {
 		log.Error("Get all following with error", slog.String("userID", userID), slog.String("error", err.Error()))
 
 		render.Status(r, http.StatusBadRequest)
-		render.JSON(w, r, customResponse.NewError(err.Error()))
+		originalErr := errors.Unwrap(err)
+		render.JSON(w, r, customResponse.NewError(originalErr.Error()))
 
 		return
 	}
@@ -291,7 +303,8 @@ func (h *UserHandler) GetAllFollowing(w http.ResponseWriter, r *http.Request) {
 			log.Error("Get all following with error", slog.Int("userID", userIDInt), slog.String("error", err.Error()))
 
 			render.Status(r, http.StatusNotFound)
-			render.JSON(w, r, customResponse.NewError(err.Error()))
+			originalErr := errors.Unwrap(err)
+			render.JSON(w, r, customResponse.NewError(originalErr.Error()))
 
 			return
 		}
@@ -299,7 +312,8 @@ func (h *UserHandler) GetAllFollowing(w http.ResponseWriter, r *http.Request) {
 		log.Error("Get all following with error", slog.Int("userID", userIDInt), slog.String("error", err.Error()))
 
 		render.Status(r, http.StatusInternalServerError)
-		render.JSON(w, r, customResponse.NewError(err.Error()))
+		originalErr := errors.Unwrap(err)
+		render.JSON(w, r, customResponse.NewError(originalErr.Error()))
 
 		return
 	}

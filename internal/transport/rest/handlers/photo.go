@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"crypto/sha256"
+	"errors"
 	"fmt"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/render"
@@ -47,7 +48,8 @@ func (h *PhotoHandler) UploadPhoto(w http.ResponseWriter, r *http.Request) {
 		log.Error("Failed to parse multipart form", slog.String("error", err.Error()))
 
 		render.Status(r, http.StatusLengthRequired)
-		render.JSON(w, r, customResponse.NewError(err.Error()))
+		originalErr := errors.Unwrap(err)
+		render.JSON(w, r, customResponse.NewError(originalErr.Error()))
 
 		return
 	}
@@ -57,7 +59,8 @@ func (h *PhotoHandler) UploadPhoto(w http.ResponseWriter, r *http.Request) {
 		log.Error("Failed to get file from form", slog.String("error", err.Error()))
 
 		render.Status(r, http.StatusBadRequest)
-		render.JSON(w, r, customResponse.NewError(err.Error()))
+		originalErr := errors.Unwrap(err)
+		render.JSON(w, r, customResponse.NewError(originalErr.Error()))
 
 		return
 	}
@@ -68,7 +71,8 @@ func (h *PhotoHandler) UploadPhoto(w http.ResponseWriter, r *http.Request) {
 		log.Error("Failed to read file", slog.String("error", err.Error()))
 
 		render.Status(r, http.StatusInternalServerError)
-		render.JSON(w, r, customResponse.NewError(err.Error()))
+		originalErr := errors.Unwrap(err)
+		render.JSON(w, r, customResponse.NewError(originalErr.Error()))
 
 		return
 	}
@@ -85,7 +89,8 @@ func (h *PhotoHandler) UploadPhoto(w http.ResponseWriter, r *http.Request) {
 		log.Error("Failed to convert user ID to int", slog.String("error", err.Error()))
 
 		render.Status(r, http.StatusInternalServerError)
-		render.JSON(w, r, customResponse.NewError(err.Error()))
+		originalErr := errors.Unwrap(err)
+		render.JSON(w, r, customResponse.NewError(originalErr.Error()))
 
 		return
 	}
@@ -95,7 +100,8 @@ func (h *PhotoHandler) UploadPhoto(w http.ResponseWriter, r *http.Request) {
 		log.Error("Failed to upload file to bd", slog.String("error", err.Error()))
 
 		render.Status(r, http.StatusInternalServerError)
-		render.JSON(w, r, customResponse.NewError(err.Error()))
+		originalErr := errors.Unwrap(err)
+		render.JSON(w, r, customResponse.NewError(originalErr.Error()))
 
 		return
 	}
@@ -105,7 +111,8 @@ func (h *PhotoHandler) UploadPhoto(w http.ResponseWriter, r *http.Request) {
 		log.Error("Failed to upload file", slog.String("error", err.Error()))
 
 		render.Status(r, http.StatusInternalServerError)
-		render.JSON(w, r, customResponse.NewError(err.Error()))
+		originalErr := errors.Unwrap(err)
+		render.JSON(w, r, customResponse.NewError(originalErr.Error()))
 
 		return
 	}
@@ -127,7 +134,8 @@ func (h *PhotoHandler) GetPhotoURL(w http.ResponseWriter, r *http.Request) {
 		log.Error("Failed to get photo from storage", slog.String("error", err.Error()))
 
 		render.Status(r, http.StatusNotFound)
-		render.JSON(w, r, customResponse.NewError(err.Error()))
+		originalErr := errors.Unwrap(err)
+		render.JSON(w, r, customResponse.NewError(originalErr.Error()))
 
 		return
 	}
@@ -140,8 +148,9 @@ func (h *PhotoHandler) GetPhotoURL(w http.ResponseWriter, r *http.Request) {
 		log.Error("Failed to write response", slog.String("error", err.Error()))
 
 		render.Status(r, http.StatusInternalServerError)
-		render.JSON(w, r, customResponse.NewError(err.Error()))
-
+		originalErr := errors.Unwrap(err)
+		render.JSON(w, r, customResponse.NewError(originalErr.Error()))
+		
 		return
 	}
 	render.JSON(w, r, customResponse.NewStatus(200))
