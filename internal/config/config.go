@@ -47,5 +47,10 @@ func New() *Config {
 			Timeout:     cfg.HttpServe.Timeout,
 			IdleTimeout: cfg.HttpServe.IdleTimeout,
 		},
+		Kafka: Kafka{
+			Address:   cfg.Kafka.Address,
+			TopicLike: cfg.Kafka.TopicLike,
+			TopicPost: cfg.Kafka.TopicPost,
+		},
 	}
 }

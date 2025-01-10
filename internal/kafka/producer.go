@@ -3,22 +3,21 @@ package kafka
 import (
 	"errors"
 	"fmt"
-	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
+	"github.com/IBM/sarama"
 	"kirkagram/internal/config"
 	"log/slog"
+	"strconv"
 )
 
 type Producer struct {
-	producer *kafka.Producer
+	producer sarama.SyncProducer
 	log      *slog.Logger
 }
 
 var ErrUnknownType = errors.New("unknown type")
 
-func NewProducer(cfg config.Config, log *slog.Logger) *Producer {
-	p, err := kafka.NewProducer(&kafka.ConfigMap{
-		"bootstrap.servers": cfg.Kafka.Address,
-	})
+func NewProducer(cfg *config.Config, log *slog.Logger) *Producer {
+	p, err := sarama.NewSyncProducer([]string{"localhost:29092"}, nil)
 	if err != nil {
 		panic(err)
 	}
@@ -29,36 +28,32 @@ func NewProducer(cfg config.Config, log *slog.Logger) *Producer {
 	}
 }
 
-func (p *Producer) Produce(msg []byte, topic *string) error {
+func (p *Producer) Produce(msg []byte, topic string) error {
 	const op = "kafka.Produce"
 
-	deliveryChan := make(chan kafka.Event)
-
-	if err := p.producer.Produce(&kafka.Message{
-		TopicPartition: kafka.TopicPartition{
-			Topic:     topic,
-			Partition: kafka.PartitionAny,
-		},
-		Value: msg,
-	}, deliveryChan); err != nil {
-		return err
+	produceMsg := &sarama.ProducerMessage{
+		Topic: topic,
+		Value: sarama.ByteEncoder(msg),
 	}
 
-	e := <-deliveryChan
-	switch ev := e.(type) {
-	case *kafka.Message:
-		if ev.TopicPartition.Error != nil {
-			return fmt.Errorf("%s %w", op, ev.TopicPartition.Error)
-		}
-		return nil
-	case kafka.Error:
-		return fmt.Errorf("%s %w", op, ev)
-	default:
-		return fmt.Errorf("%s %w", op, ErrUnknownType)
+	partition, offset, err := p.producer.SendMessage(produceMsg)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
 	}
+
+	p.log.Info(
+		"Message sent",
+		slog.String("topic", topic),
+		slog.String("partition", strconv.FormatInt(int64(partition), 10)),
+		slog.String(
+			"offset",
+			strconv.FormatInt(int64(offset), 10),
+		),
+	)
+
+	return nil
 }
 
 func (p *Producer) Close() {
-	p.producer.Flush(-1)
 	p.producer.Close()
 }

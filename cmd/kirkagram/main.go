@@ -35,7 +35,7 @@ func main() {
 	postRepo := psgr.NewPostStorage(db)
 	likeRepo := psgr.NewLikeStorage(db)
 	s3Repo := S3Storage.NewUserS3Storage(S3Client)
-	producer := k.NewProducer(*cfg, log)
+	producer := k.NewProducer(cfg, log)
 
 	userService := service.NewUserService(log, userRepo)
 	postService := service.NewPostService(postRepo, *producer, log)

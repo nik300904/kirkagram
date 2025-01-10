@@ -38,14 +38,13 @@ func (l *Like) GetLikesByID(postID int) (models.LikeResponse, error) {
 
 func (l *Like) LikePostByID(likeReq *models.LikeRequest) error {
 	const op = "service.LikePostByID"
-	topic := "like"
 
 	likeReqSlc, err := json.Marshal(likeReq)
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
 	}
 
-	err = l.producer.Produce(likeReqSlc, &topic)
+	err = l.producer.Produce(likeReqSlc, "like")
 	if err != nil {
 		return err
 	}

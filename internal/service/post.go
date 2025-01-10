@@ -40,14 +40,13 @@ func (p *Post) GetAllPostsByUserID(userID int64) (*[]models.Posts, error) {
 
 func (p *Post) CreatePost(post models.CreatePostRequest) error {
 	const op = "service.CreatePost"
-	topic := "post"
 
 	postSlc, err := json.Marshal(post)
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
 	}
 
-	err = p.producer.Produce(postSlc, &topic)
+	err = p.producer.Produce(postSlc, "post")
 	if err != nil {
 		return err
 	}
