@@ -19,11 +19,12 @@ type Post interface {
 }
 
 type Handler struct {
-	userHandler  *handlers.UserHandler
-	photoHandler *handlers.PhotoHandler
-	postHandler  *handlers.PostHandler
-	likeHandler  *handlers.LikeHandler
-	log          *slog.Logger
+	userHandler   *handlers.UserHandler
+	photoHandler  *handlers.PhotoHandler
+	postHandler   *handlers.PostHandler
+	likeHandler   *handlers.LikeHandler
+	followHandler *handlers.FollowHandler
+	log           *slog.Logger
 }
 
 func NewHandler(
@@ -32,13 +33,15 @@ func NewHandler(
 	photoHandler *handlers.PhotoHandler,
 	postHandler *handlers.PostHandler,
 	likeHandler *handlers.LikeHandler,
+	followHandler *handlers.FollowHandler,
 ) *Handler {
 	return &Handler{
-		userHandler:  userHandler,
-		photoHandler: photoHandler,
-		postHandler:  postHandler,
-		likeHandler:  likeHandler,
-		log:          log,
+		userHandler:   userHandler,
+		photoHandler:  photoHandler,
+		postHandler:   postHandler,
+		likeHandler:   likeHandler,
+		followHandler: followHandler,
+		log:           log,
 	}
 }
 
@@ -72,6 +75,9 @@ func (h *Handler) InitRouter() *chi.Mux {
 		r.Post("/like", h.likeHandler.LikePost)
 		r.Delete("/like", h.likeHandler.UnlikePost)
 		r.Get("/like/{postID}", h.likeHandler.GetLikes)
+
+		r.Post("/follow", h.followHandler.Follow)
+		r.Delete("/unfollow", h.followHandler.UnFollow)
 	})
 
 	return router

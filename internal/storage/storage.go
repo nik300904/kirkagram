@@ -32,6 +32,9 @@ var (
 	ErrPostNotFound              = errors.New("Post not found")
 	ErrPostAlreadyLiked          = errors.New("Post already liked")
 	ErrLikeNotFound              = errors.New("Like not found")
+	SelfFollowError              = errors.New("Self follow error")
+	SelfUnFollowError            = errors.New("Self unfollow error")
+	ErrAlreadyFollowed           = errors.New("Already followed")
 )
 
 func New(cfg *internalConfig.Config) *sql.DB {

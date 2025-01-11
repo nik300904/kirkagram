@@ -41,6 +41,10 @@ func (p *Post) GetAllPostsByUserID(userID int64) (*[]models.Posts, error) {
 func (p *Post) CreatePost(post models.CreatePostRequest) error {
 	const op = "service.CreatePost"
 
+	if err := p.storage.CreatePost(post); err != nil {
+		return err
+	}
+
 	postSlc, err := json.Marshal(post)
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
@@ -51,7 +55,7 @@ func (p *Post) CreatePost(post models.CreatePostRequest) error {
 		return err
 	}
 
-	return p.storage.CreatePost(post)
+	return nil
 }
 
 func (p *Post) GetAllPosts() (*[]models.Posts, error) {

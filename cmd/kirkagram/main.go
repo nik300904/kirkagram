@@ -34,20 +34,23 @@ func main() {
 	userRepo := psgr.NewUserStorage(db)
 	postRepo := psgr.NewPostStorage(db)
 	likeRepo := psgr.NewLikeStorage(db)
+	followRepo := psgr.NewFollowStorage(db)
 	s3Repo := S3Storage.NewUserS3Storage(S3Client)
 	producer := k.NewProducer(cfg, log)
 
 	userService := service.NewUserService(log, userRepo)
 	postService := service.NewPostService(postRepo, *producer, log)
 	likeService := service.NewLikeService(likeRepo, *producer, log)
+	followService := service.NewFollowService(followRepo, *producer, log)
 	photoService := service.NewPhotoService(s3Repo, log)
 
 	userHandler := handlers.NewUserHandler(userService, log)
 	photoHandler := handlers.NewPhotoHandler(userService, photoService, log)
 	postHandler := handlers.NewPostHandler(postService, photoService, log)
 	LikeHandler := handlers.NewLikeHandler(likeService, log)
+	followHandler := handlers.NewFollowHandler(followService, log)
 
-	handler := rest.NewHandler(log, userHandler, photoHandler, postHandler, LikeHandler)
+	handler := rest.NewHandler(log, userHandler, photoHandler, postHandler, LikeHandler, followHandler)
 
 	srv := &http.Server{
 		Addr:    cfg.HttpServe.Address,
