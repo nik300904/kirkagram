@@ -26,6 +26,17 @@ func NewFollowHandler(followService Follow, log *slog.Logger) *FollowHandler {
 	}
 }
 
+// Follow godoc
+// @Summary Follow a user
+// @Description Follow a user by their ID
+// @Tags follow
+// @Accept json
+// @Produce json
+// @Param request body models.FollowRequest true "Follow request"
+// @Success 201 {object} customResponse.CustomStatus
+// @Failure 400 {object} customResponse.Error
+// @Failure 500 {object} customResponse.Error
+// @Router /follow [post]
 func (f *FollowHandler) Follow(w http.ResponseWriter, r *http.Request) {
 	const op = "rest.handlers.follow.Follow"
 
@@ -59,6 +70,17 @@ func (f *FollowHandler) Follow(w http.ResponseWriter, r *http.Request) {
 	render.JSON(w, r, customResponse.NewStatus(201))
 }
 
+// UnFollow godoc
+// @Summary Unfollow a user
+// @Description Unfollow a user by their ID
+// @Tags follow
+// @Accept json
+// @Produce json
+// @Param request body models.FollowRequest true "Unfollow request"
+// @Success 201 {object} customResponse.CustomStatus
+// @Failure 400 {object} customResponse.Error
+// @Failure 500 {object} customResponse.Error
+// @Router /unfollow [delete]
 func (f *FollowHandler) UnFollow(w http.ResponseWriter, r *http.Request) {
 	const op = "rest.handlers.follow.UnFollow"
 

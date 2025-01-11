@@ -1,0 +1,675 @@
+basePath: /api
+definitions:
+  customResponse.CustomStatus:
+    properties:
+      status:
+        type: integer
+    type: object
+  customResponse.Error:
+    properties:
+      error:
+        type: string
+    type: object
+  models.CreateUserRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+      username:
+        type: string
+    required:
+    - email
+    - password
+    - username
+    type: object
+  models.FollowRequest:
+    properties:
+      follower_id:
+        type: integer
+      following_id:
+        type: integer
+    type: object
+  models.GetAllFollowersResponse:
+    properties:
+      profile_pic:
+        type: string
+      username:
+        type: string
+    type: object
+  models.LikeRequest:
+    properties:
+      post_id:
+        type: integer
+      user_id:
+        type: integer
+    type: object
+  models.LikeResponse:
+    properties:
+      count:
+        type: integer
+    type: object
+  models.Posts:
+    properties:
+      caption:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: integer
+      image_url:
+        type: string
+      updated_at:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  models.UpdateUserRequest:
+    properties:
+      bio:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      username:
+        type: string
+    type: object
+  models.User:
+    properties:
+      bio:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      password:
+        type: string
+      profile_pic:
+        type: string
+      username:
+        type: string
+    type: object
+host: localhost:8082
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: This is the API for Kirkagram application
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Kirkagram API
+  version: "1.0"
+paths:
+  /follow:
+    post:
+      consumes:
+      - application/json
+      description: Follow a user by their ID
+      parameters:
+      - description: Follow request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.FollowRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/customResponse.CustomStatus'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/customResponse.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/customResponse.Error'
+      summary: Follow a user
+      tags:
+      - follow
+  /like:
+    delete:
+      consumes:
+      - application/json
+      description: Remove a like from a specific post
+      parameters:
+      - description: Unlike request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.LikeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/customResponse.CustomStatus'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/customResponse.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/customResponse.Error'
+      summary: Unlike a post
+      tags:
+      - likes
+    post:
+      consumes:
+      - application/json
+      description: Add a like to a specific post
+      parameters:
+      - description: Like request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.LikeRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/customResponse.CustomStatus'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/customResponse.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/customResponse.Error'
+      summary: Like a post
+      tags:
+      - likes
+  /like/{postID}:
+    get:
+      consumes:
+      - application/json
+      description: Get the number of likes for a specific post
+      parameters:
+      - description: Post ID
+        in: path
+        name: postID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.LikeResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/customResponse.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/customResponse.Error'
+      summary: Get likes count for a post
+      tags:
+      - likes
+  /photo:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Upload a new photo and associate it with a user
+      parameters:
+      - description: Photo file
+        in: formData
+        name: photo
+        required: true
+        type: file
+      - description: User ID
+        in: formData
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/customResponse.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/customResponse.Error'
+      summary: Upload a photo
+      tags:
+      - photos
+  /photo/{key}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a photo by its unique key
+      parameters:
+      - description: Photo key
+        in: path
+        name: key
+        required: true
+        type: string
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: file
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/customResponse.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/customResponse.Error'
+      summary: Get photo by key
+      tags:
+      - photos
+  /post:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Create a new post with photo upload
+      parameters:
+      - description: Photo file
+        in: formData
+        name: photo
+        required: true
+        type: file
+      - description: User ID
+        in: formData
+        name: user_id
+        required: true
+        type: integer
+      - description: Post caption
+        in: formData
+        name: caption
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/customResponse.CustomStatus'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/customResponse.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/customResponse.Error'
+      summary: Create a new post
+      tags:
+      - posts
+  /post/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get details of a specific post
+      parameters:
+      - description: Post ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Posts'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/customResponse.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/customResponse.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/customResponse.Error'
+      summary: Get post by ID
+      tags:
+      - posts
+  /post/{userId}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a post by user ID
+      parameters:
+      - description: User ID
+        in: path
+        name: userId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/customResponse.CustomStatus'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/customResponse.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/customResponse.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/customResponse.Error'
+      summary: Delete a post
+      tags:
+      - posts
+  /post/all:
+    get:
+      consumes:
+      - application/json
+      description: Get a list of all posts
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Posts'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/customResponse.Error'
+      summary: Get all posts
+      tags:
+      - posts
+  /post/user/{userId}:
+    get:
+      consumes:
+      - application/json
+      description: Get all posts for a specific user
+      parameters:
+      - description: User ID
+        in: path
+        name: userId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Posts'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/customResponse.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/customResponse.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/customResponse.Error'
+      summary: Get user's posts
+      tags:
+      - posts
+  /unfollow:
+    delete:
+      consumes:
+      - application/json
+      description: Unfollow a user by their ID
+      parameters:
+      - description: Unfollow request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.FollowRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/customResponse.CustomStatus'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/customResponse.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/customResponse.Error'
+      summary: Unfollow a user
+      tags:
+      - follow
+  /user:
+    post:
+      consumes:
+      - application/json
+      description: Register a new user in the system
+      parameters:
+      - description: User registration details
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/customResponse.CustomStatus'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/customResponse.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/customResponse.Error'
+      summary: Register a new user
+      tags:
+      - users
+    put:
+      consumes:
+      - application/json
+      description: Update details of an existing user
+      parameters:
+      - description: Updated user information
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/models.UpdateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/customResponse.CustomStatus'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/customResponse.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/customResponse.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/customResponse.Error'
+      summary: Update user information
+      tags:
+      - users
+  /user/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a user from the system by ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/customResponse.CustomStatus'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/customResponse.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/customResponse.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/customResponse.Error'
+      summary: Delete a user
+      tags:
+      - users
+    get:
+      consumes:
+      - application/json
+      description: Get details of a specific user
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.User'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/customResponse.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/customResponse.Error'
+      summary: Get user by ID
+      tags:
+      - users
+  /user/{userID}/followers:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of all followers for a specific user
+      parameters:
+      - description: User ID
+        in: path
+        name: userID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.GetAllFollowersResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/customResponse.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/customResponse.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/customResponse.Error'
+      summary: Get all followers of a user
+      tags:
+      - users
+  /user/{userID}/following:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of all users followed by a specific user
+      parameters:
+      - description: User ID
+        in: path
+        name: userID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.GetAllFollowersResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/customResponse.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/customResponse.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/customResponse.Error'
+      summary: Get all users followed by a user
+      tags:
+      - users
+swagger: "2.0"

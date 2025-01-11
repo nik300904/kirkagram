@@ -29,6 +29,17 @@ func NewLikeHandler(likeService Like, log *slog.Logger) *LikeHandler {
 	}
 }
 
+// GetLikes godoc
+// @Summary Get likes count for a post
+// @Description Get the number of likes for a specific post
+// @Tags likes
+// @Accept json
+// @Produce json
+// @Param postID path int true "Post ID"
+// @Success 200 {object} models.LikeResponse
+// @Failure 400 {object} customResponse.Error
+// @Failure 500 {object} customResponse.Error
+// @Router /like/{postID} [get]
 func (l *LikeHandler) GetLikes(w http.ResponseWriter, r *http.Request) {
 	const op = "rest.handlers.like.LikePost"
 
@@ -70,6 +81,17 @@ func (l *LikeHandler) GetLikes(w http.ResponseWriter, r *http.Request) {
 	render.JSON(w, r, count)
 }
 
+// UnlikePost godoc
+// @Summary Unlike a post
+// @Description Remove a like from a specific post
+// @Tags likes
+// @Accept json
+// @Produce json
+// @Param request body models.LikeRequest true "Unlike request"
+// @Success 200 {object} customResponse.CustomStatus
+// @Failure 400 {object} customResponse.Error
+// @Failure 500 {object} customResponse.Error
+// @Router /like [delete]
 func (l *LikeHandler) UnlikePost(w http.ResponseWriter, r *http.Request) {
 	const op = "rest.handlers.like.LikePost"
 
@@ -103,6 +125,17 @@ func (l *LikeHandler) UnlikePost(w http.ResponseWriter, r *http.Request) {
 	render.JSON(w, r, customResponse.NewStatus(200))
 }
 
+// LikePost godoc
+// @Summary Like a post
+// @Description Add a like to a specific post
+// @Tags likes
+// @Accept json
+// @Produce json
+// @Param request body models.LikeRequest true "Like request"
+// @Success 201 {object} customResponse.CustomStatus
+// @Failure 400 {object} customResponse.Error
+// @Failure 500 {object} customResponse.Error
+// @Router /like [post]
 func (l *LikeHandler) LikePost(w http.ResponseWriter, r *http.Request) {
 	const op = "rest.handlers.like.LikePost"
 

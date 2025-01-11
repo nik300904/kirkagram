@@ -35,6 +35,17 @@ func NewUserHandler(userService User, log *slog.Logger) *UserHandler {
 	}
 }
 
+// Register godoc
+// @Summary Register a new user
+// @Description Register a new user in the system
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param user body models.CreateUserRequest true "User registration details"
+// @Success 201 {object} customResponse.CustomStatus
+// @Failure 400 {object} customResponse.Error
+// @Failure 500 {object} customResponse.Error
+// @Router /user [post]
 func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 	const op = "rest.handlers.user.Register"
 
@@ -68,6 +79,18 @@ func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 	render.JSON(w, r, customResponse.NewStatus(201))
 }
 
+// DeleteUser godoc
+// @Summary Delete a user
+// @Description Delete a user from the system by ID
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param id path int true "User ID"
+// @Success 200 {object} customResponse.CustomStatus
+// @Failure 400 {object} customResponse.Error
+// @Failure 404 {object} customResponse.Error
+// @Failure 500 {object} customResponse.Error
+// @Router /user/{id} [delete]
 func (h *UserHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	const op = "rest.handlers.user.DeleteUser"
 
@@ -119,6 +142,17 @@ func (h *UserHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	render.JSON(w, r, customResponse.NewStatus(200))
 }
 
+// GetUser godoc
+// @Summary Get user by ID
+// @Description Get details of a specific user
+// @Tags users
+// @Accept  json
+// @Produce  json
+// @Param id path int true "User ID"
+// @Success 200 {object} models.User
+// @Failure 400 {object} customResponse.Error
+// @Failure 404 {object} customResponse.Error
+// @Router /user/{id} [get]
 func (h *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 	const op = "rest.handlers.user.GetUser"
 
@@ -166,6 +200,18 @@ func (h *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 	render.JSON(w, r, user)
 }
 
+// UpdateUser godoc
+// @Summary Update user information
+// @Description Update details of an existing user
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param user body models.UpdateUserRequest true "Updated user information"
+// @Success 200 {object} customResponse.CustomStatus
+// @Failure 400 {object} customResponse.Error
+// @Failure 404 {object} customResponse.Error
+// @Failure 500 {object} customResponse.Error
+// @Router /user [put]
 func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	const op = "rest.handlers.user.UpdateUser"
 
@@ -212,6 +258,18 @@ func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	render.JSON(w, r, customResponse.NewStatus(200))
 }
 
+// GetAllFollowers godoc
+// @Summary Get all followers of a user
+// @Description Retrieve a list of all followers for a specific user
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param userID path int true "User ID"
+// @Success 200 {array} models.GetAllFollowersResponse
+// @Failure 400 {object} customResponse.Error
+// @Failure 404 {object} customResponse.Error
+// @Failure 500 {object} customResponse.Error
+// @Router /user/{userID}/followers [get]
 func (h *UserHandler) GetAllFollowers(w http.ResponseWriter, r *http.Request) {
 	const op = "rest.handlers.user.GetAllFollowers"
 
@@ -268,6 +326,18 @@ func (h *UserHandler) GetAllFollowers(w http.ResponseWriter, r *http.Request) {
 	render.JSON(w, r, followers)
 }
 
+// GetAllFollowing godoc
+// @Summary Get all users followed by a user
+// @Description Retrieve a list of all users followed by a specific user
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param userID path int true "User ID"
+// @Success 200 {array} models.GetAllFollowersResponse
+// @Failure 400 {object} customResponse.Error
+// @Failure 404 {object} customResponse.Error
+// @Failure 500 {object} customResponse.Error
+// @Router /user/{userID}/following [get]
 func (h *UserHandler) GetAllFollowing(w http.ResponseWriter, r *http.Request) {
 	const op = "rest.handlers.user.GetAllFollowing"
 

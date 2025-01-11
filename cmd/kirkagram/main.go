@@ -1,6 +1,23 @@
+//	@title			Kirkagram API
+//	@version		1.0
+//	@description	This is the API for Kirkagram application
+//	@termsOfService	http://swagger.io/terms/
+
+//	@contact.name	API Support
+//	@contact.url	http://www.swagger.io/support
+//	@contact.email	support@swagger.io
+
+//	@license.name	Apache 2.0
+//	@license.url	http://www.apache.org/licenses/LICENSE-2.0.html
+
+//	@host		localhost:8082
+//	@BasePath	/api
+
 package main
 
 import (
+	httpSwagger "github.com/swaggo/http-swagger"
+	_ "kirkagram/docs"
 	"kirkagram/internal/config"
 	k "kirkagram/internal/kafka"
 	"kirkagram/internal/lib/logger/handlers/slogpretty"
@@ -52,9 +69,14 @@ func main() {
 
 	handler := rest.NewHandler(log, userHandler, photoHandler, postHandler, LikeHandler, followHandler)
 
+	router := handler.InitRouter()
+
+	router.Get("/swagger/*", httpSwagger.Handler(
+		httpSwagger.URL("http://localhost:8082/swagger/doc.json"), // Путь к JSON-файлу Swagger
+	))
 	srv := &http.Server{
 		Addr:    cfg.HttpServe.Address,
-		Handler: handler.InitRouter(),
+		Handler: router,
 	}
 
 	log.Info("SERVER STARTED AT", slog.String("address", cfg.HttpServe.Address))

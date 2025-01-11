@@ -37,6 +37,18 @@ func NewPhotoHandler(userService UserForPhoto, photoService Photo, log *slog.Log
 	}
 }
 
+// UploadPhoto godoc
+// @Summary Upload a photo
+// @Description Upload a new photo and associate it with a user
+// @Tags photos
+// @Accept multipart/form-data
+// @Produce json
+// @Param photo formData file true "Photo file"
+// @Param id formData int true "User ID"
+// @Success 200 {object} map[string]string
+// @Failure 400 {object} customResponse.Error
+// @Failure 500 {object} customResponse.Error
+// @Router /photo [post]
 func (h *PhotoHandler) UploadPhoto(w http.ResponseWriter, r *http.Request) {
 	const op = "rest.handlers.photo.UploadPhoto"
 
@@ -121,6 +133,17 @@ func (h *PhotoHandler) UploadPhoto(w http.ResponseWriter, r *http.Request) {
 	render.JSON(w, r, map[string]string{"filename": filename})
 }
 
+// GetPhotoURL godoc
+// @Summary Get photo by key
+// @Description Retrieve a photo by its unique key
+// @Tags photos
+// @Accept json
+// @Produce octet-stream
+// @Param key path string true "Photo key"
+// @Success 200 {file} binary
+// @Failure 404 {object} customResponse.Error
+// @Failure 500 {object} customResponse.Error
+// @Router /photo/{key} [get]
 func (h *PhotoHandler) GetPhotoURL(w http.ResponseWriter, r *http.Request) {
 	const op = "rest.handlers.photo.GetPhotoURL"
 
@@ -150,7 +173,7 @@ func (h *PhotoHandler) GetPhotoURL(w http.ResponseWriter, r *http.Request) {
 		render.Status(r, http.StatusInternalServerError)
 		originalErr := errors.Unwrap(err)
 		render.JSON(w, r, customResponse.NewError(originalErr.Error()))
-		
+
 		return
 	}
 	render.JSON(w, r, customResponse.NewStatus(200))

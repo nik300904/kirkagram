@@ -42,6 +42,18 @@ func NewPostHandler(postService Post, photoService PhotoUpl, log *slog.Logger) *
 	}
 }
 
+// DeletePost godoc
+// @Summary Delete a post
+// @Description Delete a post by user ID
+// @Tags posts
+// @Accept json
+// @Produce json
+// @Param userId path int true "User ID"
+// @Success 200 {object} customResponse.CustomStatus
+// @Failure 400 {object} customResponse.Error
+// @Failure 404 {object} customResponse.Error
+// @Failure 500 {object} customResponse.Error
+// @Router /post/{userId} [delete]
 func (p *PostHandler) DeletePost(w http.ResponseWriter, r *http.Request) {
 	const op = "rest.handlers.post.DeletePost"
 
@@ -92,6 +104,18 @@ func (p *PostHandler) DeletePost(w http.ResponseWriter, r *http.Request) {
 	render.JSON(w, r, customResponse.NewStatus(200))
 }
 
+// GetUserPosts godoc
+// @Summary Get user's posts
+// @Description Get all posts for a specific user
+// @Tags posts
+// @Accept json
+// @Produce json
+// @Param userId path int true "User ID"
+// @Success 200 {array} models.Posts
+// @Failure 400 {object} customResponse.Error
+// @Failure 404 {object} customResponse.Error
+// @Failure 500 {object} customResponse.Error
+// @Router /post/user/{userId} [get]
 func (p *PostHandler) GetUserPosts(w http.ResponseWriter, r *http.Request) {
 	const op = "rest.handlers.post.GetUserPosts"
 
@@ -144,6 +168,18 @@ func (p *PostHandler) GetUserPosts(w http.ResponseWriter, r *http.Request) {
 	render.JSON(w, r, posts)
 }
 
+// GetPostByID godoc
+// @Summary Get post by ID
+// @Description Get details of a specific post
+// @Tags posts
+// @Accept json
+// @Produce json
+// @Param id path int true "Post ID"
+// @Success 200 {object} models.Posts
+// @Failure 400 {object} customResponse.Error
+// @Failure 404 {object} customResponse.Error
+// @Failure 500 {object} customResponse.Error
+// @Router /post/{id} [get]
 func (p *PostHandler) GetPostByID(w http.ResponseWriter, r *http.Request) {
 	const op = "rest.handlers.post.GetPostByID"
 
@@ -193,6 +229,19 @@ func (p *PostHandler) GetPostByID(w http.ResponseWriter, r *http.Request) {
 	render.JSON(w, r, post)
 }
 
+// CreatePost godoc
+// @Summary Create a new post
+// @Description Create a new post with photo upload
+// @Tags posts
+// @Accept multipart/form-data
+// @Produce json
+// @Param photo formData file true "Photo file"
+// @Param user_id formData int true "User ID"
+// @Param caption formData string true "Post caption"
+// @Success 201 {object} customResponse.CustomStatus
+// @Failure 400 {object} customResponse.Error
+// @Failure 500 {object} customResponse.Error
+// @Router /post [post]
 func (p *PostHandler) CreatePost(w http.ResponseWriter, r *http.Request) {
 	const op = "rest.handlers.post.CreatePost"
 
@@ -274,6 +323,15 @@ func (p *PostHandler) CreatePost(w http.ResponseWriter, r *http.Request) {
 	render.JSON(w, r, customResponse.NewStatus(201))
 }
 
+// GetAllPosts godoc
+// @Summary Get all posts
+// @Description Get a list of all posts
+// @Tags posts
+// @Accept json
+// @Produce json
+// @Success 200 {array} models.Posts
+// @Failure 500 {object} customResponse.Error
+// @Router /post/all [get]
 func (p *PostHandler) GetAllPosts(w http.ResponseWriter, r *http.Request) {
 	const op = "rest.handlers.post.GetAllPosts"
 
